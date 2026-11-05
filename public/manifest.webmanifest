@@ -1,0 +1,11 @@
+{
+  "name": "THANZAN FIT",
+  "short_name": "THANZAN FIT",
+  "description": "A private, local-first fitness and nutrition journal.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101613",
+  "theme_color": "#101613",
+  "icons": [{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
