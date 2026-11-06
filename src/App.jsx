@@ -101,7 +101,22 @@ export default function App() {
   const saveCheckin = (e) => { e.preventDefault(); if(!sleep||Number(sleep)<0||Number(sleep)>24) return notify('Enter sleep hours from 0 to 24.'); const entry={id:id(),date:today,sleepHours:Number(sleep),energy:Number(energy),soreness:Number(soreness),createdAt:Date.now()}; setData(d=>({...d,recovery:[entry,...d.recovery]})); setSleep(''); notify('Check-in saved'); };
   const download = (name,content,type) => { const blob=new Blob([content],{type}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),800); };
   const backup = () => download('thanzan-fit-backup.json',JSON.stringify(data,null,2),'application/json');
-  const csv = () => { const rows=[['date','type','name','quantity','calories_kcal','protein_g','carbohydrate_g','fat_g','fibre_g'],...data.weights.map(x=>[x.date,'weight','',`${x.kg} kg`,'','','','','']),...data.meals.map(x=>[x.date,'food',x.name,x.quantity,x.kcal,x.p,x.c,x.f,x.fiber]),...data.waters.map(x=>[x.date,'water','',`${x.ml} ml`,'','','','',''])]; download('thanzan-fit-records.csv',rows.map(r=>r.map(x=>`"${String(x??'').replaceAll('"','""')}"`).join(',')).join('\n'),'text/csv'); };
+  const csv = () => {
+    const columns=['date','type','name','quantity','weight_kg','calories_kcal','protein_g','carbohydrate_g','fat_g','fibre_g','water_ml','duration_minutes','set_count','exercise','reps','load_kg','waist_cm','chest_cm','arms_cm','hips_cm','thighs_cm','neck_cm','sleep_hours','energy_1_to_5','soreness_1_to_5','details'];
+    const makeRow=(type,values={})=>Object.fromEntries([['type',type],...Object.entries(values)]);
+    const sessions=new Map(data.workouts.map(w=>[w.id,w]));
+    const rows=[columns,
+      ...data.weights.map(x=>makeRow('weight',{date:x.date,weight_kg:x.kg,details:x.note})),
+      ...data.meals.map(x=>makeRow('food',{date:x.date,name:x.name,quantity:x.quantity,calories_kcal:x.kcal,protein_g:x.p,carbohydrate_g:x.c,fat_g:x.f,fibre_g:x.fiber})),
+      ...data.waters.map(x=>makeRow('water',{date:x.date,water_ml:x.ml})),
+      ...data.workouts.map(x=>makeRow('workout',{date:x.date,name:x.name,duration_minutes:x.minutes,set_count:x.sets,details:(x.completed||[]).join('; ')})),
+      ...data.sets.map(x=>{const session=sessions.get(x.sessionId);return makeRow('workout_set',{date:session?.date,name:session?.name,exercise:x.exercise,reps:x.reps,load_kg:x.kg,details:session?`session ${session.id}`:x.sessionId});}),
+      ...data.measurements.map(x=>makeRow('measurement',{date:x.date,waist_cm:x.waist,chest_cm:x.chest,arms_cm:x.arms,hips_cm:x.hips,thighs_cm:x.thighs,neck_cm:x.neck})),
+      ...data.recovery.map(x=>makeRow('recovery',{date:x.date,sleep_hours:x.sleepHours,energy_1_to_5:x.energy,soreness_1_to_5:x.soreness}))
+    ];
+    const csvText=rows.map(row=>columns.map(key=>`"${String(Array.isArray(row)?row[columns.indexOf(key)]:row[key]??'').replaceAll('"','""')}"`).join(',')).join('\n');
+    download('thanzan-fit-records.csv',csvText,'text/csv');
+  };
   const restore = (file) => { if(!file)return; const reader=new FileReader(); reader.onload=()=>{ try { const incoming=JSON.parse(reader.result); const allowed=['profile','weights','meals','waters','workouts','sets','measurements','recovery','favorites','customFoods','routineEdits','customRoutines','theme']; if(!incoming||typeof incoming!=='object'||Array.isArray(incoming)) throw new Error(); const next={...baseState(),...Object.fromEntries(allowed.filter(k=>k in incoming).map(k=>[k,incoming[k]]))}; setData(next); setTheme(next.theme||'dark'); notify('Backup restored'); } catch { notify('That backup file could not be read.'); } }; reader.readAsText(file); };
   const deleteAll = () => { if(window.confirm('Delete all THANZAN FIT data saved in this browser? This cannot be undone.')) { localStorage.removeItem(STORAGE_KEY); setData(baseState()); setTheme('dark'); notify('Local data deleted'); } };
   const trend = [...data.weights].slice(0,8).reverse();
