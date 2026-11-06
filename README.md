@@ -5,8 +5,8 @@ A mobile-first, standalone fitness and food journal that runs in a browser and c
 ## Privacy and scope
 
 - Starts with a blank profile; enter only the personal data you choose.
-- Records stay in this browser's `localStorage` on this device. They are not synced, backed up to a server, encrypted by this app, or shared between browsers/devices.
-- No account, Supabase, cloud backup, AI service, food-photo recognition, or remote personal-data API is included. The Coach view summarizes locally entered records with simple rules; it is not an AI trainer or medical advice.
+- By default, records stay in this browser's `localStorage` on this device. They are not synced unless you configure Supabase and explicitly use the manual cloud-copy controls.
+- Optional Supabase sign-in and manual backup/restore integration is scaffolded below. It is not active until you configure your own project and environment values. The Coach view summarizes locally entered records with simple rules; it is not an AI trainer or medical advice.
 - The starter food list has approximate generic reference values. Actual foods and recipes vary; verify packaging and portions.
 - Avoid sensitive entries on shared devices. Export a JSON backup and store it somewhere private if you need a backup.
 
@@ -47,3 +47,15 @@ The repository workflow targets `https://thanzan123.github.io/thanzan-fit/`. Git
 ## Data
 
 The app does not ship with user-specific data. Use **Progress → Download JSON backup** to export supported local records; use **Restore JSON** to restore them in this browser. CSV exports weigh-ins, food, water, workouts, individual sets, body measurements and recovery check-ins. Weekly and month-to-date PDF reports summarize only records saved in the selected period; averages use days with entries, not blank days. Deleting local records only affects this browser's THANZAN FIT key; clearing browser/site data may remove it too.
+
+
+## Optional Supabase persistence
+
+The app can store one JSONB fitness record per authenticated user in your own Supabase project. Synchronization is manual: sign in with an emailed link, check the cloud record, then explicitly upload or load it. It never syncs on page load or silently merges copies. Replacing either copy is destructive to that copy, so export a JSON backup first.
+
+1. Create a Supabase project that you control. In its SQL Editor, run [`supabase/schema.sql`](supabase/schema.sql). The table uses row-level security and permits each signed-in user to access only their own row.
+2. In Supabase Authentication → URL Configuration, allow the exact local and production app URLs as redirect URLs, including `/thanzan-fit/` for GitHub Pages. Enable email sign-in.
+3. Copy `.env.example` to `.env.local` for local development and fill in the Project URL and public anon/publishable key from Project Settings → API. For GitHub Pages, add `VITE_SUPABASE_URL` as an Actions variable and `VITE_SUPABASE_ANON_KEY` as an Actions secret in the repository settings. Pushes build with those values; without them, the app stays local-first and shows setup instructions.
+4. Never put a Supabase service-role/secret key in frontend code, `.env` files committed to Git, or GitHub Pages. The anon/publishable key is designed for frontend use and relies on correct RLS policies.
+
+The single-row JSONB design is a migration-friendly first persistence step, not a normalized relational data model. Supabase stores the profile and logs as ordinary project data; this app does not provide end-to-end encryption or a medical-record security certification. No project credentials or cloud deployment configuration are included in this repository.
