@@ -13,11 +13,11 @@ A mobile-first, standalone fitness and food journal that runs in a browser and c
 ## Included features
 
 - Editable, optional profile and transparent BMI/BMR/TDEE estimates; calorie targets wait for required profile fields and use a moderate cap.
-- Daily weight, food, water, recovery and manual activity logs (steps, walking distance and non-gym active minutes) saved in browser storage. Walking calories are a clearly labeled rough estimate using logged distance and profile weight; there is no step-counter or health-device integration.
+- Daily weight, food, water, recovery (sleep duration and a subjective 1–5 sleep-quality rating) and manual activity logs (steps, walking distance and non-gym active minutes) saved in browser storage. Walking calories are a clearly labeled rough estimate using logged distance and profile weight; there is no step-counter or health-device integration.
 - Starter Push/Pull/Legs week with editable default routines and user-created routines/exercise lists; routine edits and active-session exercise snapshots persist locally.
 - Workout timer, set-by-set session log, editable or deletable weigh-ins and body measurements, and progress summaries.
 - Generic nutrition starter list, custom foods, favorites, meal categories and macro totals; edit or delete saved food entries, including their date, meal, portion and nutrient values.
-- Plain JSON backup/restore plus optional passphrase-encrypted JSON backup/restore (AES-GCM with PBKDF2); a unified CSV export for weigh-ins, food, water, workouts, individual sets, body measurements, recovery check-ins and daily activity logs, plus locally generated weekly and month-to-date PDF progress reports.
+- Plain JSON backup/restore plus optional passphrase-encrypted JSON backup/restore (AES-GCM with PBKDF2); a unified CSV export for weigh-ins, food, water, workouts, individual sets, body measurements, recovery check-ins (including the reported sleep-quality rating) and daily activity logs, plus locally generated weekly and month-to-date PDF progress reports.
 - Responsive dark/light UI, installable manifest and offline app-shell caching.
 - A 32-movement exercise guide. Thirty guides have in-app video examples; Dead bug and Light walking link to the original YouTube pages instead of embedding or copying them. Reuse rights for those two external videos were not independently verified.
 
