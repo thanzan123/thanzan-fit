@@ -19,8 +19,9 @@ A mobile-first, standalone fitness and food journal that runs in a browser and c
 - Generic nutrition starter list, custom foods, favorites, meal categories and macro totals; edit or delete saved food entries, including their date, meal, portion and nutrient values.
 - JSON backup/restore, a unified CSV export for weigh-ins, food, water, workouts, individual sets, body measurements and recovery check-ins, plus locally generated weekly and month-to-date PDF progress reports.
 - Responsive dark/light UI, installable manifest and offline app-shell caching.
+- A 32-movement exercise guide. Thirty guides have in-app video examples; Dead bug and Light walking link to the original YouTube pages instead of embedding or copying them. Reuse rights for those two external videos were not independently verified.
 
-This is a useful local-first starter, not the full production platform from the original brief. It does not include secure private photo storage, account authentication, cross-device persistence, automated reminders, full exercise videos, or personalized AI integration.
+This is a useful local-first starter, not the full production platform from the original brief. It does not include secure private photo storage, account authentication, cross-device persistence, automated reminders, a complete embedded video library, or personalized AI integration.
 
 ## Run locally
 
