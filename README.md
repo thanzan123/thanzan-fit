@@ -17,10 +17,10 @@ A mobile-first, standalone fitness and food journal that runs in a browser and c
 - Starter Push/Pull/Legs week with editable default routines and user-created routines/exercise lists; routine edits and active-session exercise snapshots persist locally.
 - Workout timer, set-by-set session log, dated body measurements and progress summaries.
 - Generic nutrition starter list, custom foods, favorites, meal categories and macro totals.
-- JSON backup/restore and a unified CSV export for weigh-ins, food, water, workouts, individual sets, body measurements, and recovery check-ins.
+- JSON backup/restore, a unified CSV export for weigh-ins, food, water, workouts, individual sets, body measurements and recovery check-ins, plus locally generated weekly and month-to-date PDF progress reports.
 - Responsive dark/light UI, installable manifest and offline app-shell caching.
 
-This is a useful local-first starter, not the full production platform from the original brief. It does not include secure private photo storage, account authentication, cross-device persistence, automated reminders, PDF reports, full exercise videos, or personalized AI integration.
+This is a useful local-first starter, not the full production platform from the original brief. It does not include secure private photo storage, account authentication, cross-device persistence, automated reminders, full exercise videos, or personalized AI integration.
 
 ## Run locally
 
@@ -46,4 +46,4 @@ The repository workflow targets `https://thanzan123.github.io/thanzan-fit/`. Git
 
 ## Data
 
-The app does not ship with user-specific data. Use **Progress → Download JSON backup** to export supported local records; use **Restore JSON** to restore them in this browser. CSV exports weigh-ins, food, water, workouts, individual sets, body measurements and recovery check-ins. Deleting local records only affects this browser's THANZAN FIT key; clearing browser/site data may remove it too.
+The app does not ship with user-specific data. Use **Progress → Download JSON backup** to export supported local records; use **Restore JSON** to restore them in this browser. CSV exports weigh-ins, food, water, workouts, individual sets, body measurements and recovery check-ins. Weekly and month-to-date PDF reports summarize only records saved in the selected period; averages use days with entries, not blank days. Deleting local records only affects this browser's THANZAN FIT key; clearing browser/site data may remove it too.
