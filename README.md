@@ -13,11 +13,11 @@ A mobile-first, standalone fitness and food journal that runs in a browser and c
 ## Included features
 
 - Editable, optional profile and transparent BMI/BMR/TDEE estimates; calorie targets wait for required profile fields and use a moderate cap.
-- Daily weight, food, water and recovery logs saved in browser storage.
+- Daily weight, food, water, recovery and manual activity logs (steps, walking distance and non-gym active minutes) saved in browser storage. Walking calories are a clearly labeled rough estimate using logged distance and profile weight; there is no step-counter or health-device integration.
 - Starter Push/Pull/Legs week with editable default routines and user-created routines/exercise lists; routine edits and active-session exercise snapshots persist locally.
 - Workout timer, set-by-set session log, editable or deletable weigh-ins and body measurements, and progress summaries.
 - Generic nutrition starter list, custom foods, favorites, meal categories and macro totals; edit or delete saved food entries, including their date, meal, portion and nutrient values.
-- JSON backup/restore, a unified CSV export for weigh-ins, food, water, workouts, individual sets, body measurements and recovery check-ins, plus locally generated weekly and month-to-date PDF progress reports.
+- JSON backup/restore, a unified CSV export for weigh-ins, food, water, workouts, individual sets, body measurements, recovery check-ins and daily activity logs, plus locally generated weekly and month-to-date PDF progress reports.
 - Responsive dark/light UI, installable manifest and offline app-shell caching.
 - A 32-movement exercise guide. Thirty guides have in-app video examples; Dead bug and Light walking link to the original YouTube pages instead of embedding or copying them. Reuse rights for those two external videos were not independently verified.
 
@@ -47,7 +47,7 @@ The repository workflow targets `https://thanzan123.github.io/thanzan-fit/`. Git
 
 ## Data
 
-The app does not ship with user-specific data. Use **Progress → Download JSON backup** to export supported local records; use **Restore JSON** to restore them in this browser. CSV exports weigh-ins, food, water, workouts, individual sets, body measurements and recovery check-ins. Weekly and month-to-date PDF reports summarize only records saved in the selected period; averages use days with entries, not blank days. Deleting local records only affects this browser's THANZAN FIT key; clearing browser/site data may remove it too.
+The app does not ship with user-specific data. Use **Progress → Download JSON backup** to export supported local records; use **Restore JSON** to restore them in this browser. CSV exports weigh-ins, food, water, workouts, individual sets, body measurements, recovery check-ins and daily activity logs. Daily steps, walking distance and non-gym active minutes are manual entries; rough walking-calorie estimates use 0.5 kcal × logged km × saved profile weight (kg), and are neither measured nor used to change food targets. JSON backup/restore and weekly/month-to-date PDFs include the activity records. Weekly and month-to-date PDF reports summarize only records saved in the selected period; averages use days with entries, not blank days. Deleting local records only affects this browser's THANZAN FIT key; clearing browser/site data may remove it too.
 
 
 ## Optional Supabase persistence
