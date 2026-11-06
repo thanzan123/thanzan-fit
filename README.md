@@ -16,7 +16,7 @@ A mobile-first, standalone fitness and food journal that runs in a browser and c
 - Daily weight, food, water and recovery logs saved in browser storage.
 - Starter Push/Pull/Legs week with editable default routines and user-created routines/exercise lists; routine edits and active-session exercise snapshots persist locally.
 - Workout timer, set-by-set session log, dated body measurements and progress summaries.
-- Generic nutrition starter list, custom foods, favorites, meal categories and macro totals.
+- Generic nutrition starter list, custom foods, favorites, meal categories and macro totals; edit or delete saved food entries, including their date, meal, portion and nutrient values.
 - JSON backup/restore, a unified CSV export for weigh-ins, food, water, workouts, individual sets, body measurements and recovery check-ins, plus locally generated weekly and month-to-date PDF progress reports.
 - Responsive dark/light UI, installable manifest and offline app-shell caching.
 
