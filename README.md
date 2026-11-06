@@ -14,7 +14,8 @@ A mobile-first, standalone fitness and food journal that runs in a browser and c
 
 - Editable, optional profile and transparent BMI/BMR/TDEE estimates; calorie targets wait for required profile fields and use a moderate cap.
 - Daily weight, food, water and recovery logs saved in browser storage.
-- Starter Push/Pull/Legs week, workout timer, set-by-set session log, dated body measurements and progress summaries.
+- Starter Push/Pull/Legs week with editable default routines and user-created routines/exercise lists; routine edits and active-session exercise snapshots persist locally.
+- Workout timer, set-by-set session log, dated body measurements and progress summaries.
 - Generic nutrition starter list, custom foods, favorites, meal categories and macro totals.
 - JSON backup/restore and CSV export.
 - Responsive dark/light UI, installable manifest and offline app-shell caching.
