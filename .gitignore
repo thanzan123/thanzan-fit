@@ -2,3 +2,7 @@ node_modules/
 dist/
 .DS_Store
 *.log
+
+# Local environment values (keep the safe template tracked).
+.env*
+!.env.example

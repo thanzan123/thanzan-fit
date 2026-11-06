@@ -51,6 +51,8 @@ The app does not ship with user-specific data. Use **Progress → Download JSON 
 
 ## Optional Supabase persistence
 
+For the full project, authentication, GitHub Actions and troubleshooting walkthrough, see [`SUPABASE_SETUP.md`](SUPABASE_SETUP.md).
+
 The app can store one JSONB fitness record per authenticated user in your own Supabase project. Synchronization is manual: sign in with an emailed link, check the cloud record, then explicitly upload or load it. It never syncs on page load or silently merges copies. Replacing either copy is destructive to that copy, so export a JSON backup first.
 
 1. Create a Supabase project that you control. In its SQL Editor, run [`supabase/schema.sql`](supabase/schema.sql). The table uses row-level security and permits each signed-in user to access only their own row.
