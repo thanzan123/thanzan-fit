@@ -41,17 +41,25 @@ test('keeps workout foreign keys coherent and syncs templates and daily recovery
 });
 
 
-test('writes normalized rows before the restore snapshot and scopes stale cleanup to the owner', async () => {
+test('upserts parents before the snapshot and removes stale dependent rows before parents, owner-scoped', async () => {
   const calls=[];
+  const staleByTable={
+    workout_plans:'stale-plan', workout_plan_exercises:'stale-plan-exercise',
+    workout_sessions:'stale-session', workout_exercises:'stale-exercise', exercise_sets:'stale-set',
+    custom_meals:'stale-meal', custom_meal_items:'stale-meal-item', weight_logs:'stale-weight',
+  };
   const client={from(table){return {
     upsert:async(rows,options)=>{calls.push({kind:'upsert',table,rows,options});return {error:null};},
-    select:()=>({eq:(column,value)=>({range:async(start,end)=>({data:table==='weight_logs'?[{id:'stale-weight'}]:[],error:null})})}),
+    select:()=>({eq:(column,value)=>({range:async(start,end)=>({data:staleByTable[table]?[{id:staleByTable[table]}]:[],error:null})})}),
     delete:()=>({eq:(column,value)=>({in:async(key,ids)=>{calls.push({kind:'delete',table,ownerColumn:column,owner:value,key,ids});return {error:null};}})}),
   };}};
   await writeNormalizedSnapshot(client,uuid,base,'dark');
   const upserts=calls.filter(x=>x.kind==='upsert');
   assert.equal(upserts.at(-1).table,'user_preferences');
   assert.deepEqual(upserts.at(-1).rows[0].preferences.app_snapshot,{...base,theme:'dark'});
-  assert.deepEqual(calls.filter(x=>x.kind==='delete'),[{kind:'delete',table:'weight_logs',ownerColumn:'user_id',owner:uuid,key:'id',ids:['stale-weight']}]);
   assert.ok(upserts.every(x=>x.rows.every(row=>row.user_id===uuid)));
+  const deletes=calls.filter(x=>x.kind==='delete');
+  assert.ok(deletes.every(x=>x.ownerColumn==='user_id'&&x.owner===uuid));
+  assert.deepEqual(deletes.map(x=>x.table),['weight_logs','custom_meal_items','custom_meals','exercise_sets','workout_exercises','workout_sessions','workout_plan_exercises','workout_plans']);
+  assert.deepEqual(deletes.map(x=>x.ids[0]),['stale-weight','stale-meal-item','stale-meal','stale-set','stale-exercise','stale-session','stale-plan-exercise','stale-plan']);
 });

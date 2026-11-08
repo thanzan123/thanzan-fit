@@ -84,16 +84,19 @@ const SINGLETONS = new Set(['profiles','user_preferences','nutrition_targets']);
 
 export async function writeNormalizedSnapshot(client, userId, data, theme) {
   const rows = buildNormalizedRows({userId,data,theme});
+  // Upsert parents before dependents, then remove stale rows in reverse FK order.
+  // Deleting parents during the upsert pass can fail while stale child rows still exist.
   for (const table of TABLE_ORDER) {
     const entries=rows[table]||[];
-    if (entries.length) {
-      for(let i=0;i<entries.length;i+=200){
-        const batch=entries.slice(i,i+200);
-        const {error}=await client.from(table).upsert(batch,{onConflict:SINGLETONS.has(table)?'user_id':'id'});
-        if(error) throw new Error(`${table}: ${error.message}`);
-      }
+    for(let i=0;i<entries.length;i+=200){
+      const batch=entries.slice(i,i+200);
+      const {error}=await client.from(table).upsert(batch,{onConflict:SINGLETONS.has(table)?'user_id':'id'});
+      if(error) throw new Error(`${table}: ${error.message}`);
     }
+  }
+  for (const table of [...TABLE_ORDER].reverse()) {
     if (SINGLETONS.has(table)) continue;
+    const entries=rows[table]||[];
     const desired=new Set(entries.map(x=>x.id));
     const existing=[];
     for(let offset=0;;offset+=1000){
