@@ -62,6 +62,10 @@ The two directions are explicit and do not merge records. Saving over an existin
 - **No cloud copy yet:** this is expected before the first explicit save. Signing in alone does not upload anything.
 - **Different data on two devices:** each has independent local data until you explicitly load the cloud copy. The app has no merge or automatic conflict resolution.
 
+## Normalized schema foundation (not used by the current PWA)
+
+The current app still uses only `fitness_records` for manual cloud copies. A separate additive relational schema is available at [`supabase/normalized_schema.sql`](supabase/normalized_schema.sql), with its scope, local test limits and integration steps documented in [`supabase/NORMALIZED_SCHEMA_NOTES.md`](supabase/NORMALIZED_SCHEMA_NOTES.md). Applying it does not turn on app sync, photo upload or AI.
+
 ## Data and security limits
 
 The cloud copy contains the app's supported profile and fitness records in one JSONB row. It is ordinary project data, not end-to-end encrypted, and this app has no medical-record security certification. Anyone with access to the Supabase project may be able to access project data according to that project's own administrative permissions. The public app's anon/publishable key is not an account password; RLS is essential to limiting user-row access. The full production platform's account sync, normalized database, server-side AI trainer, and secure private photo storage are not provided by this optional manual-copy setup.

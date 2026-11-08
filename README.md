@@ -56,6 +56,8 @@ For the full project, authentication, GitHub Actions and troubleshooting walkthr
 
 The app can store one JSONB fitness record per authenticated user in your own Supabase project. Synchronization is manual: sign in with an emailed link, check the cloud record, then explicitly upload or load it. It never syncs on page load or silently merges copies. Replacing either copy is destructive to that copy, so export a JSON backup first.
 
+A separate [`supabase/normalized_schema.sql`](supabase/normalized_schema.sql) is now available as an additive database foundation for the larger platform. It defines per-user tables, ownership policies, and a private photo bucket, but the current PWA does **not** read or write those tables; its manual cloud-copy feature still uses only `fitness_records`. See [`supabase/NORMALIZED_SCHEMA_NOTES.md`](supabase/NORMALIZED_SCHEMA_NOTES.md) before applying it.
+
 1. Create a Supabase project that you control. In its SQL Editor, run [`supabase/schema.sql`](supabase/schema.sql). The table uses row-level security and permits each signed-in user to access only their own row.
 2. In Supabase Authentication → URL Configuration, allow the exact local and production app URLs as redirect URLs, including `/thanzan-fit/` for GitHub Pages. Enable email sign-in.
 3. Copy `.env.example` to `.env.local` for local development and fill in the Project URL and public anon/publishable key from Project Settings → API. For GitHub Pages, add `VITE_SUPABASE_URL` as an Actions variable and `VITE_SUPABASE_ANON_KEY` as an Actions secret in the repository settings. Pushes build with those values; without them, the app stays local-first and shows setup instructions.
