@@ -10,9 +10,9 @@ const minimumSetsFrom = (value) => {
   return match ? Math.max(1, Number(match[1])) : null;
 };
 
-const formatLoad = (kg) => `${Number(kg)} kg`;
+const formatLoad = (kg, units = 'metric') => `${Number((units === 'imperial' ? kg / 0.45359237 : kg).toFixed(1))} ${units === 'imperial' ? 'lb' : 'kg'}`;
 
-export function getProgressionCue({ guide, session, recoverySignals = [], exerciseRestrictions = '', previousInjuries = '' }) {
+export function getProgressionCue({ guide, session, recoverySignals = [], exerciseRestrictions = '', previousInjuries = '', units = 'metric' }) {
   if (!guide) return { kind: 'neutral', body: 'Choose a guided exercise to see a log-based progression cue.' };
   const repRange = rangeFrom(guide.reps);
   const minSets = minimumSetsFrom(guide.sets);
@@ -27,7 +27,7 @@ export function getProgressionCue({ guide, session, recoverySignals = [], exerci
   }
   const loads = [...new Set(sets.map(set => Number(set.kg)))];
   const reps = sets.map(set => Number(set.reps));
-  const setText = `${sets.length} ${sets.length === 1 ? 'set' : 'sets'} at ${loads.length === 1 ? formatLoad(loads[0]) : 'varying loads'} · ${reps.join(', ')} reps (guide ${repRange.min}–${repRange.max})`;
+  const setText = `${sets.length} ${sets.length === 1 ? 'set' : 'sets'} at ${loads.length === 1 ? formatLoad(loads[0], units) : 'varying loads'} · ${reps.join(', ')} reps (guide ${repRange.min}–${repRange.max})`;
   if (sets.length < minSets) {
     return { kind: 'neutral', body: `Latest completed session: ${setText}. The guide starts at ${minSets} sets, so there is not enough logged work for a progression cue yet.` };
   }
