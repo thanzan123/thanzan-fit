@@ -1,6 +1,6 @@
--- THANZAN FIT normalized Supabase foundation (additive; not yet used by the PWA).
+-- THANZAN FIT normalized Supabase schema (additive; used for explicit manual cloud copies).
 -- Apply in a new Supabase project's SQL Editor. This intentionally leaves the
--- existing public.fitness_records JSONB table in place for the current manual-copy UI.
+-- existing public.fitness_records JSONB table in place as a compatibility copy for older builds.
 -- All user-owned rows are protected by per-row RLS; do not expose service-role keys.
 
 create table if not exists public.profiles (

@@ -10,11 +10,11 @@ This guide configures the optional manual cloud-copy feature in the hosted Progr
 
 Do not send project keys or passwords in chat or commit them to the repository. The browser app uses only Supabase's public anon/publishable key; never use a `service_role` or secret key in Vite variables, frontend code, GitHub Pages, or a browser.
 
-## 1. Create the table and access policies
+## 1. Create the tables and access policies
 
-In the Supabase dashboard for your project, open **SQL Editor**, create a query, and run [`supabase/schema.sql`](supabase/schema.sql) from this repository.
+In your Supabase dashboard, open **SQL Editor** and run both [`supabase/schema.sql`](supabase/schema.sql) and [`supabase/normalized_schema.sql`](supabase/normalized_schema.sql). The first creates the backward-compatible JSON copy; the second creates the normalized tables and owner-only RLS policies used by the current PWA. Apply the normalized file after the legacy file. Re-running either file is supported.
 
-This creates `public.fitness_records`, with one JSONB payload per authenticated user. Row-level security (RLS) is enabled; the signed-in user can select, insert, or update only the row whose `user_id` matches their Supabase auth ID. The SQL can be run again to recreate its named policies. Do not disable RLS or add broad `anon` access policies.
+The normalized schema creates account-owned profile, workout, nutrition, water, activity and recovery tables with row-level security (RLS). The signed-in user can read or change only rows whose `user_id` matches their Supabase auth ID. It also retains `public.fitness_records` as a backward-compatible copy for older app builds. Do not disable RLS or add broad `anon` access policies.
 
 ## 2. Enable email sign-in and set redirect URLs
 
@@ -49,23 +49,25 @@ On the hosted app, open **Progress → Supabase cloud copy**. If configuration i
 1. Enter the email address for the Supabase account you want to use and request a sign-in link.
 2. Open the link on that same device/browser. Confirm the app shows you as signed in.
 3. Choose **Check cloud copy**. A first-time account should show that no cloud copy exists yet.
-4. To upload, choose **Save this browser to cloud** and confirm the prompt. This writes the current browser's complete supported data as one account row.
+4. To upload, choose **Save this browser to cloud** and confirm the prompt. The app writes account-owned rows to the normalized tables, stores a compatibility snapshot in `user_preferences`, and refreshes the legacy JSON copy.
 5. On another device/browser, sign into the same Supabase account, choose **Check cloud copy**, then **Load cloud copy here** and confirm to replace that browser's local record.
 
-The two directions are explicit and do not merge records. Saving over an existing cloud record replaces it; loading replaces the current browser's record. Download a JSON backup first if you may need either previous copy. Sign-out does not remove local browser data or the cloud record.
+The two directions are explicit and do not merge records. Saving replaces stale rows for this account after writing the current snapshot; loading replaces the current browser's record. Download a JSON backup first if you may need either previous copy. If an upload reports an error, the local browser data is unchanged; check the table/policy setup and retry only after resolving the error. Sign-out does not remove local browser data or the cloud record.
 
 ## Troubleshooting
 
 - **Setup needed still appears:** check the spelling of both variable names and that values are set in the build environment, then trigger a fresh successful deployment. Do not add a service-role key.
 - **Email link says redirect URL is not allowed:** add the exact URL shown in the address bar to Supabase's allowed redirect URLs, including the GitHub Pages path; then request a fresh link.
-- **Cloud check/save fails with a table or permission error:** confirm `supabase/schema.sql` ran successfully in the same Supabase project whose URL/key the build uses, and confirm RLS remains enabled with the supplied authenticated-user policies.
+- **Cloud check/save fails with a table or permission error:** confirm both `supabase/schema.sql` and `supabase/normalized_schema.sql` ran successfully in the same Supabase project whose URL/key the build uses, and confirm RLS remains enabled with the supplied authenticated-user policies.
 - **No cloud copy yet:** this is expected before the first explicit save. Signing in alone does not upload anything.
 - **Different data on two devices:** each has independent local data until you explicitly load the cloud copy. The app has no merge or automatic conflict resolution.
 
-## Normalized schema foundation (not used by the current PWA)
+## What the current PWA syncs
 
-The current app still uses only `fitness_records` for manual cloud copies. A separate additive relational schema is available at [`supabase/normalized_schema.sql`](supabase/normalized_schema.sql), with its scope, local test limits and integration steps documented in [`supabase/NORMALIZED_SCHEMA_NOTES.md`](supabase/NORMALIZED_SCHEMA_NOTES.md). Applying it does not turn on app sync, photo upload or AI.
+The PWA uses the normalized profile and user-preference tables plus normalized tables for weigh-ins, body measurements, meal logs, custom foods, meal templates, workouts/sets, water, activity and sleep/recovery logs. It stores a compatibility snapshot in `user_preferences.preferences.app_snapshot` so all existing app settings and record details can be restored exactly, and mirrors the snapshot to `fitness_records` for older builds. Save and load remain manual; this is not continuous sync. RLS must remain enabled.
+
+The schema also prepares private body-photo storage, AI conversation and report tables, but the PWA does not yet upload photos or provide personalized server-side AI. The broader platform is still unfinished.
 
 ## Data and security limits
 
-The cloud copy contains the app's supported profile and fitness records in one JSONB row. It is ordinary project data, not end-to-end encrypted, and this app has no medical-record security certification. Anyone with access to the Supabase project may be able to access project data according to that project's own administrative permissions. The public app's anon/publishable key is not an account password; RLS is essential to limiting user-row access. The full production platform's account sync, normalized database, server-side AI trainer, and secure private photo storage are not provided by this optional manual-copy setup.
+The cloud copy stores supported records across normalized relational tables and keeps an app snapshot in `user_preferences.preferences.app_snapshot` for faithful restore; a compatibility JSONB row may also be refreshed for older builds. It is ordinary project data, not end-to-end encrypted, and this app has no medical-record security certification. Anyone with access to the Supabase project may be able to access project data according to that project's own administrative permissions. The public app's anon/publishable key is not an account password; RLS is essential to limiting user-row access. Cloud save/load is manual and does not merge automatically. The app is not end-to-end encrypted, and this manual flow does not implement private photo upload or personalized server-side AI.
