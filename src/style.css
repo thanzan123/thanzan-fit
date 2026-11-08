@@ -58,3 +58,5 @@
 .reminder-row input[type=time]{width:100px;max-width:38%;padding:8px 6px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);font:inherit}
 .reminder-save{margin-bottom:4px}
 @media(max-width:640px){.reminder-list{grid-template-columns:1fr;gap:8px}.reminder-row{padding:9px 11px}}
+
+.progression-cue{display:grid;gap:8px;margin-top:10px;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}.progression-cue>div{display:grid;gap:5px}.progression-cue>div strong{font-size:12px}.progression-cue p{margin:0;font-size:11px;line-height:1.6}.progression-cue small{color:var(--muted);font-size:10px;line-height:1.5}.progression-cue.suggestion{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}.progression-cue.caution{border-color:color-mix(in srgb,var(--danger) 42%,var(--line));background:color-mix(in srgb,var(--danger) 7%,var(--panel2))}
