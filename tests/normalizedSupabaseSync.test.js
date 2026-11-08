@@ -26,6 +26,15 @@ test('maps profile, weigh-ins, measurements, meals, water and activity into owne
   assert.equal(rows.activity_logs[0].steps,3000);
 });
 
+test('preserves recipe ingredients and serving nutrition in normalized custom-food rows', () => {
+  const recipe={id:'recipe-1',name:'Oats bowl',basis:'1 serving',category:'Custom recipe',isRecipe:true,servings:2,kcal:250,p:18,c:30,f:7,fiber:5,ingredients:[{id:'i1',foodId:'oats',name:'Oats',amount:50,unit:'g',basis:'100 g',kcal:389,p:16.9,c:66.3,f:6.9,fiber:10.6}]};
+  const rows=buildNormalizedRows({userId:uuid,data:{...base,customFoods:[recipe]}});
+  assert.equal(rows.custom_foods[0].serving_basis,'1 serving');
+  assert.equal(rows.custom_foods[0].nutrients.is_recipe,true);
+  assert.equal(rows.custom_foods[0].nutrients.servings,2);
+  assert.deepEqual(rows.custom_foods[0].nutrients.ingredients,recipe.ingredients);
+});
+
 test('keeps workout foreign keys coherent and syncs templates and daily recovery inputs', () => {
   const data={...base,customRoutines:[{id:'routine-1',day:'Monday',name:'Push',focus:'Upper body',exercises:['Bench press']}],routineEdits:{},workouts:[{id:'workout-1',date:'2026-11-08',name:'Push',startedAt:1762588800000,active:false,routineExercises:['Bench press'],minutes:45}],sets:[{id:'set-1',sessionId:'workout-1',exercise:'Bench press',reps:10,kg:40,createdAt:1762589900000}],mealTemplates:[{id:'template-1',name:'Breakfast',items:[{name:'Oats',quantity:'80 g',kcal:300,p:12,c:40,f:8,fiber:6}]}],recovery:[{id:'checkin-1',date:'2026-11-08',sleepHours:7.5,sleepQuality:4,energy:3,soreness:2,readiness:4}]};
   const rows=buildNormalizedRows({userId:uuid,data});
