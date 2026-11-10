@@ -2,6 +2,27 @@ import { calculateRecipe } from './recipe.js';
 
 export const keralaRecipeStarters = [
   {
+    id: 'kerala-appam',
+    name: 'Appam (starter estimate)',
+    servings: 8,
+    ingredients: [
+      { foodId: 'usda-rice-flour-white', amount: 500, unit: 'g' },
+      { foodId: 'usda-coconut-milk-canned', amount: 239, unit: 'g' },
+      { foodId: 'usda-semolina-enriched', amount: 100, unit: 'g' },
+      { foodId: 'usda-granulated-sugar', amount: 12.5, unit: 'g' },
+    ],
+    recipeUrl: 'https://www.keralatourism.org/kerala-food/appam-mutton-stew/36/',
+    nutritionSources: [
+      { label: 'Kerala Tourism · appam recipe', url: 'https://www.keralatourism.org/kerala-food/appam-mutton-stew/36/' },
+      { label: 'USDA FoodData Central · rice flour', url: 'https://fdc.nal.usda.gov/food-details/790214/nutrients' },
+      { label: 'USDA FoodData Central · semolina', url: 'https://fdc.nal.usda.gov/food-details/169715/nutrients' },
+      { label: 'USDA FoodData Central · coconut milk', url: 'https://fdc.nal.usda.gov/food-details/170173/nutrients' },
+      { label: 'USDA FoodData Central · sugar', url: 'https://fdc.nal.usda.gov/food-details/169655/nutrients' },
+    ],
+    recipeSource: 'Kerala Tourism lists 500 g rice flour, 250 ml coconut milk, 100 g semolina and 1 tbsp sugar; it does not state the yield, so this estimate assumes 8 appams.',
+    note: 'Starter estimate only. Coconut milk is converted to about 239 g using USDA’s 226 g per cup measure; sugar is estimated at 12.5 g per tablespoon. Water and salt are omitted; the source says “a little” oil without an amount, so it is not counted. USDA does not report fibre for canned coconut milk, so the fibre total excludes any contribution from it; sugar remains unknown because coconut-milk sugar is unreported. Appam size and ingredients vary; edit the recipe to match your batch.',
+  },
+  {
     id: 'kerala-puttu',
     name: 'Puttu (starter estimate)',
     servings: 2,

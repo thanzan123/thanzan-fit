@@ -96,6 +96,9 @@ const foodBase = [
   ifctFood('P034','Indian mackerel, raw','protein',21.51,0,1.53,0,423),
   ifctFood('P071','Indian oil sardine, raw','protein',17.91,0,8.99,0,637),
   {id:'usda-rice-flour-white',name:'Rice flour, white, unenriched',category:'USDA Foundation Foods · FDC 790214',basis:'100 g',kcal:359,p:6.94,c:79.8,f:1.3,fiber:0.5,sugar:null},
+  {id:'usda-semolina-enriched',name:'Semolina, enriched',category:'USDA SR Legacy · FDC 169715',basis:'100 g',kcal:360,p:12.7,c:72.8,f:1.05,fiber:3.9,sugar:null},
+  {id:'usda-coconut-milk-canned',name:'Coconut milk, canned',category:'USDA SR Legacy · FDC 170173',basis:'100 g',kcal:197,p:2.02,c:2.81,f:21.3,fiber:0,sugar:null},
+  {id:'usda-granulated-sugar',name:'Granulated sugar',category:'USDA SR Legacy · FDC 169655',basis:'100 g',kcal:387,p:0,c:100,f:0,fiber:0,sugar:99.8},
 ];
 const routines = [
   {day:'Monday',name:'Push A',focus:'Chest · shoulders · triceps',exercises:['Machine chest press','Incline dumbbell press','Cable chest fly','Seated shoulder press','Dumbbell lateral raise','Triceps rope pushdown']},
