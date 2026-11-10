@@ -11,6 +11,8 @@ export function answerLocalQuestion(question, {
   startingWeight = null,
   currentWeight = null,
   weightUnit = 'kg',
+  steps = null,
+  stepTarget = null,
 } = {}) {
   if (question === 'calories') {
     const entries = meals.filter(item => item.date === today);
@@ -44,6 +46,15 @@ export function answerLocalQuestion(question, {
     const amount = `${(ml / 1000).toFixed(2)} L`;
     if (!entries.length) return waterTarget ? `There are no water entries saved today. Your current goal or starting estimate is ${(Number(waterTarget) / 1000).toFixed(1)} L.` : 'There are no water entries saved today, and no goal or estimate is available.';
     return waterTarget ? `${amount} is logged today, against a ${((Number(waterTarget) || 0) / 1000).toFixed(1)} L goal or starting estimate.` : `${amount} is logged today.`;
+  }
+  if (question === 'steps') {
+    if (!validNumber(steps) || !Number.isInteger(Number(steps)) || Number(steps) < 0) return 'There is no manual step entry saved for today, so today’s steps are unknown.';
+    const count = Number(steps);
+    if (!validNumber(stepTarget) || !Number.isInteger(Number(stepTarget)) || Number(stepTarget) < 1) return `${count.toLocaleString()} steps are saved today; no personal step goal is set.`;
+    const remaining = Math.max(0, Number(stepTarget) - count);
+    return count >= Number(stepTarget)
+      ? `${count.toLocaleString()} manual steps are saved today; your personal goal of ${Number(stepTarget).toLocaleString()} is reached.`
+      : `${count.toLocaleString()} manual steps are saved today; ${remaining.toLocaleString()} to your personal goal of ${Number(stepTarget).toLocaleString()}.`;
   }
   if (question === 'weight') {
     if (!validNumber(startingWeight) || Number(startingWeight) <= 0 || !validNumber(currentWeight) || Number(currentWeight) <= 0) return 'Add both starting and current weight in your profile to compare them.';

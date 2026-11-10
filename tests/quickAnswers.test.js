@@ -32,3 +32,12 @@ test('weight answer compares profile values and calls out missing inputs', () =>
   assert.match(answerLocalQuestion('weight', { startingWeight: 100, currentWeight: 90, weightUnit: 'kg' }), /10.0 kg lower.*profile values/);
   assert.match(answerLocalQuestion('weight', { startingWeight: 100, currentWeight: null }), /both starting and current weight/);
 });
+
+
+test('steps answer keeps absent manual logs unknown and reports personal-goal progress', () => {
+  assert.match(answerLocalQuestion('steps', { steps: null, stepTarget: 8000 }), /no manual step entry.*unknown/);
+  assert.match(answerLocalQuestion('steps', { steps: 0, stepTarget: 8000 }), /0 manual steps.*8,000/);
+  assert.match(answerLocalQuestion('steps', { steps: 6200, stepTarget: 8000 }), /6,200 manual steps.*1,800.*8,000/);
+  assert.match(answerLocalQuestion('steps', { steps: 9000, stepTarget: 8000 }), /9,000 manual steps.*goal of 8,000 is reached/);
+  assert.match(answerLocalQuestion('steps', { steps: 6200 }), /no personal step goal is set/);
+});
