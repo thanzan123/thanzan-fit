@@ -2,6 +2,24 @@ import { calculateRecipe } from './recipe.js';
 
 export const keralaRecipeStarters = [
   {
+    id: 'kerala-puttu',
+    name: 'Puttu (starter estimate)',
+    servings: 2,
+    ingredients: [
+      { foodId: 'usda-rice-flour-white', amount: 158, unit: 'g' },
+      { foodId: 'ifct-H007', amount: 42.5, unit: 'g' },
+    ],
+    recipeUrl: 'https://www.keralatourism.org/kerala-food/puttu-kadala/43/',
+    nutritionSources: [
+      { label: 'Kerala Tourism · puttu', url: 'https://www.keralatourism.org/kerala-food/puttu-kadala/43/' },
+      { label: 'USDA FoodData Central · rice flour', url: 'https://fdc.nal.usda.gov/food-details/790214/nutrients' },
+      { label: 'IFCT 2017 · fresh coconut', url: 'https://www.nin.res.in/ebooks/IFCT2017.pdf' },
+      { label: 'Ingredient cup-weight estimates', url: 'https://cookbookmanager.com/tools/ingredient-weights' },
+    ],
+    recipeSource: 'Kerala Tourism lists 1 cup coarse rice flour and ½ cup grated coconut; the recipe yield is not stated, so this estimate assumes 2 servings.',
+    note: 'Cup amounts are converted using US-cup reference weights (158 g rice flour; about 43 g shredded coconut). Coarse puttu flour is represented by white rice flour data; cup packing, flour type and your serving size can change the result. Water and salt are omitted. Edit ingredients and servings to match your batch.',
+  },
+  {
     id: 'kerala-idiyappam',
     name: 'Idiyappam (starter estimate)',
     servings: 4,

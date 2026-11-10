@@ -8,7 +8,7 @@ const foods = [
 ];
 
 test('Kerala idiyappam starter estimates its cited ingredients and keeps unknown sugar unknown', () => {
-  const starter = keralaRecipeStarters[0];
+  const starter = keralaRecipeStarters.find(item => item.id === 'kerala-idiyappam');
   const recipe = buildStarterRecipe(starter, foods, 'test-id');
   assert.equal(recipe.id, 'test-id');
   assert.equal(recipe.servings, 4);
@@ -20,6 +20,19 @@ test('Kerala idiyappam starter estimates its cited ingredients and keeps unknown
   assert.equal(recipe.nutritionSources.length, 4);
 });
 
+test('Kerala puttu starter makes its cup conversion and serving assumption explicit', () => {
+  const starter = keralaRecipeStarters.find(item => item.id === 'kerala-puttu');
+  const recipe = buildStarterRecipe(starter, foods, 'puttu-test');
+  assert.equal(recipe.servings, 2);
+  assert.equal(recipe.ingredients.length, 2);
+  assert.equal(recipe.kcal, 371);
+  assert.equal(recipe.sugar, null);
+  assert.equal(recipe.recipeUrl, 'https://www.keralatourism.org/kerala-food/puttu-kadala/43/');
+  assert.match(recipe.recipeSource, /yield is not stated/);
+  assert.match(recipe.note, /Coarse puttu flour is represented/);
+  assert.equal(recipe.nutritionSources.length, 4);
+});
+
 test('starter save detection does not treat arbitrary saved recipes as this starter', () => {
   assert.equal(isStarterRecipeSaved([{ starterId: 'kerala-idiyappam' }], 'kerala-idiyappam'), true);
   assert.equal(isStarterRecipeSaved([{ id: 'custom', isRecipe: true }], 'kerala-idiyappam'), false);
@@ -27,5 +40,5 @@ test('starter save detection does not treat arbitrary saved recipes as this star
 });
 
 test('starter recipe fails clearly when a referenced food is unavailable', () => {
-  assert.throws(() => buildStarterRecipe(keralaRecipeStarters[0], foods.slice(0, 1), 'test-id'), /Missing food reference: ifct-H007/);
+  assert.throws(() => buildStarterRecipe(keralaRecipeStarters.find(item => item.id === 'kerala-idiyappam'), foods.slice(0, 1), 'test-id'), /Missing food reference: ifct-H007/);
 });
