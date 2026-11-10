@@ -79,3 +79,4 @@
 .coach-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.coach-quick-grid .button{white-space:normal;text-align:center}.coach-quick-answer{margin:13px 0 0;padding:12px 14px;border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));border-radius:12px;background:var(--panel2);font-size:13px;line-height:1.6}.coach-quick-answers .method-note{margin-bottom:0}
 
 .water-remaining{margin:10px 0 0;font-size:12px;color:var(--accent);font-weight:650}
+.personal-record-list{display:grid}.personal-record-list .record-row{align-items:center}.personal-record-list .record-row>span{display:grid;gap:4px}.personal-record-list .record-row small{color:var(--muted);font-size:10px}
