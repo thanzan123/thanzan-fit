@@ -38,7 +38,7 @@ test('preserves recipe ingredients and serving nutrition in normalized custom-fo
 });
 
 test('keeps workout foreign keys coherent and syncs templates and daily recovery inputs', () => {
-  const data={...base,customRoutines:[{id:'routine-1',day:'Monday',name:'Push',focus:'Upper body',exercises:['Bench press']}],routineEdits:{},workouts:[{id:'workout-1',date:'2026-11-08',name:'Push',startedAt:1762588800000,active:false,routineExercises:['Bench press'],minutes:45}],sets:[{id:'set-1',sessionId:'workout-1',exercise:'Bench press',reps:10,kg:40,createdAt:1762589900000}],mealTemplates:[{id:'template-1',name:'Breakfast',items:[{name:'Oats',quantity:'80 g',kcal:300,p:12,c:40,f:8,fiber:6,sugar:3.1}]}],recovery:[{id:'checkin-1',date:'2026-11-08',sleepHours:7.5,sleepQuality:4,energy:3,soreness:2,readiness:4}]};
+  const data={...base,customRoutines:[{id:'routine-1',day:'Monday',name:'Push',focus:'Upper body',exercises:['Bench press']}],routineEdits:{},workouts:[{id:'workout-1',date:'2026-11-08',name:'Push',startedAt:1762588800000,active:false,routineExercises:['Bench press'],minutes:45}],sets:[{id:'set-1',sessionId:'workout-1',exercise:'Bench press',reps:10,kg:40,createdAt:1762589900000}],mealTemplates:[{id:'template-1',name:'Breakfast',items:[{name:'Oats',quantity:'80 g',kcal:300,p:12,c:40,f:8,fiber:6,sugar:3.1}]}],recovery:[{id:'checkin-1',date:'2026-11-08',sleepHours:7.5,sleepQuality:4,energy:3,soreness:2,readiness:4,workoutReadiness:'ready'}]};
   const rows=buildNormalizedRows({userId:uuid,data});
   assert.equal(rows.workout_plans.length,1);
   assert.equal(rows.workout_plan_exercises[0].plan_id,rows.workout_plans[0].id);
@@ -49,6 +49,7 @@ test('keeps workout foreign keys coherent and syncs templates and daily recovery
   assert.equal(rows.custom_meal_items[0].nutrients_snapshot.sugars_g,3.1);
   assert.equal(rows.sleep_logs[0].duration_hours,7.5);
   assert.equal(rows.recovery_logs[0].readiness_rating,4);
+  assert.equal(rows.recovery_logs[0].workout_readiness,'ready');
   assert.equal(rows.nutrition_targets[0].water_target_ml,null);
 });
 

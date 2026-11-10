@@ -267,11 +267,13 @@ create table if not exists public.recovery_logs (
   energy_rating smallint check (energy_rating is null or energy_rating between 1 and 5),
   soreness_rating smallint check (soreness_rating is null or soreness_rating between 1 and 5),
   readiness_rating smallint check (readiness_rating is null or readiness_rating between 1 and 5),
+  workout_readiness text check (workout_readiness is null or workout_readiness in ('ready','unsure','rest')),
   note text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (user_id, log_date)
 );
+alter table public.recovery_logs add column if not exists workout_readiness text check (workout_readiness is null or workout_readiness in ('ready','unsure','rest'));
 create index if not exists recovery_logs_user_date_idx on public.recovery_logs (user_id, log_date desc);
 
 create table if not exists public.ai_conversations (
