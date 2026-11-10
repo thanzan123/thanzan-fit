@@ -43,3 +43,25 @@ export function getWeeklyReview({ today, meals = [], waters = [], workouts = [],
     },
   };
 }
+
+export function formatWeeklyReviewAnswer(review, formatWeight = value => `${Number(value).toFixed(1)} kg`) {
+  const parts = [`Last 7 days (${review.startDate}–${review.endDate})`];
+  parts.push(`${review.completedWorkouts} completed ${review.completedWorkouts === 1 ? 'workout' : 'workouts'} saved.`);
+  if (review.nutrition.loggedDays) {
+    const calories = review.nutrition.averageCalories === null ? 'calorie average unavailable' : `${Math.round(review.nutrition.averageCalories).toLocaleString()} kcal/day`;
+    const protein = review.nutrition.averageProtein === null ? 'protein average unavailable' : `${review.nutrition.averageProtein.toFixed(1)} g protein/day`;
+    const foodDayLabel = review.nutrition.loggedDays === 1 ? 'day' : 'days';
+    parts.push(`Food was logged on ${review.nutrition.loggedDays} ${foodDayLabel}; those logged days averaged ${calories} and ${protein}.`);
+  } else parts.push('No food entries were saved this week.');
+  if (review.water.loggedDays) parts.push(`Water was logged on ${review.water.loggedDays} ${review.water.loggedDays === 1 ? 'day' : 'days'}, averaging ${Math.round(review.water.averageMl).toLocaleString()} ml on logged days.`);
+  else parts.push('No water entries were saved this week.');
+  if (review.sleep.checkIns) parts.push(`${review.sleep.checkIns} sleep ${review.sleep.checkIns === 1 ? 'check-in averaged' : 'check-ins averaged'} ${review.sleep.averageHours.toFixed(1)} hours.`);
+  else parts.push('No sleep check-ins were saved this week.');
+  if (review.weight.first && review.weight.latest) {
+    const first = review.weight.first;
+    const latest = review.weight.latest;
+    parts.push(`${review.weight.entries} weigh-ins: ${formatWeight(first.kg)} on ${first.date} to ${formatWeight(latest.kg)} on ${latest.date}; this is a simple comparison, not a smoothed trend.`);
+  } else if (review.weight.entries) parts.push(`${review.weight.entries} weigh-in${review.weight.entries === 1 ? '' : 's'} saved; there aren’t two to compare.`);
+  else parts.push('No weigh-ins were saved this week.');
+  return `${parts.join(' ')} Blank days stay unknown, not zero.`;
+}
