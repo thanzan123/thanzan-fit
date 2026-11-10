@@ -6,6 +6,7 @@ export function answerLocalQuestion(question, {
   meals = [],
   waters = [],
   proteinTarget = null,
+  fiberTarget = null,
   waterTarget = null,
   startingWeight = null,
   currentWeight = null,
@@ -25,6 +26,17 @@ export function answerLocalQuestion(question, {
     return entries.length
       ? `${logged.toFixed(1)} g protein is logged today. That leaves about ${remaining.toFixed(1)} g to your profile estimate of ${Math.round(Number(proteinTarget))} g; it’s an estimate, not a prescription.`
       : `No food is logged today yet. Your profile-based protein estimate is ${Math.round(Number(proteinTarget))} g, but logged intake is still unknown.`;
+  }
+  if (question === 'fiber') {
+    const entries = meals.filter(item => item.date === today);
+    if (!entries.length) return 'There is no food logged today yet, so fibre intake is unknown.';
+    const known = entries.filter(item => validNumber(item.fiber) && Number(item.fiber) >= 0);
+    if (!known.length) return `Fibre values aren’t recorded for today’s ${entries.length} food ${entries.length === 1 ? 'entry' : 'entries'}, so intake is unknown.`;
+    const grams = known.reduce((sum, item) => sum + Number(item.fiber), 0);
+    const partial = known.length < entries.length ? ` across ${known.length} of ${entries.length} entries with fibre data` : '';
+    if (!validNumber(fiberTarget) || Number(fiberTarget) <= 0) return `${grams.toFixed(1)} g fibre is recorded today${partial}; a profile-based estimate isn’t available.`;
+    const remaining = Math.max(0, Number(fiberTarget) - grams);
+    return `${grams.toFixed(1)} g fibre is recorded today${partial}. That leaves about ${remaining.toFixed(1)} g to your estimated ${Math.round(Number(fiberTarget))} g target; it’s an estimate, not a prescription.`;
   }
   if (question === 'water') {
     const entries = waters.filter(item => item.date === today);

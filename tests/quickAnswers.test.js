@@ -16,6 +16,13 @@ test('protein answer requires an available target and avoids treating absent log
   assert.match(answerLocalQuestion('protein', { today, proteinTarget: 100, meals: [{ date: today, p: 120 }] }), /0.0 g to your profile estimate/);
 });
 
+test('fibre answer preserves unknown and partial nutrition values', () => {
+  assert.match(answerLocalQuestion('fiber', { today, meals: [], fiberTarget: 28 }), /no food logged.*unknown/);
+  assert.match(answerLocalQuestion('fiber', { today, meals: [{ date: today, fiber: null }] }), /values aren’t recorded.*unknown/);
+  assert.match(answerLocalQuestion('fiber', { today, fiberTarget: 28, meals: [{ date: today, fiber: 6.5 }, { date: today, fiber: null }, { date: '2026-11-10', fiber: 100 }] }), /6.5 g fibre.*1 of 2 entries.*21.5 g.*estimated 28 g target/);
+  assert.match(answerLocalQuestion('fiber', { today, fiberTarget: 20, meals: [{ date: today, fiber: 24 }] }), /0.0 g to your estimated 20 g target/);
+});
+
 test('water answer distinguishes no entries and presents goal units accurately', () => {
   assert.match(answerLocalQuestion('water', { today, waters: [], waterTarget: 2200 }), /no water entries.*2.2 L/);
   assert.match(answerLocalQuestion('water', { today, waters: [{ date: today, ml: 750 }, { date: today, ml: 250 }], waterTarget: 2000 }), /1.00 L.*2.0 L/);
