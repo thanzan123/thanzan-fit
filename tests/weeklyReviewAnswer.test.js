@@ -7,7 +7,7 @@ const empty = { today: '2026-11-11', meals: [], waters: [], workouts: [], weight
 test('Coach weekly answer summarizes recorded days and preserves missing data', () => {
   const review = getWeeklyReview({
     ...empty,
-    meals: [{ date: '2026-11-10', kcal: 1800, p: 90 }],
+    meals: [{ date: '2026-11-10', kcal: 1800, p: 90, c: 210, f: 60 }],
     waters: [{ date: '2026-11-10', ml: 1500 }],
     workouts: [{ date: '2026-11-10', active: false }],
     weights: [{ date: '2026-11-10', kg: 80 }, { date: '2026-11-11', kg: 79.5 }],
@@ -16,7 +16,8 @@ test('Coach weekly answer summarizes recorded days and preserves missing data', 
   const answer = formatWeeklyReviewAnswer(review, value => `${value.toFixed(1)} kg`);
   assert.match(answer, /1 completed workout/);
   assert.match(answer, /Food was logged on 1 day/);
-  assert.match(answer, /1,800 kcal\/day and 90.0 g protein\/day/);
+  assert.match(answer, /1,800 kcal\/day across 1 complete day, and protein was 90.0 g protein\/day across 1 complete day/);
+  assert.match(answer, /Average logged-day macros: 210.0 g carbs across 1 complete day; 60.0 g fat across 1 complete day/);
   assert.match(answer, /Water was logged on 1 day, averaging 1,500 ml on logged days/);
   assert.match(answer, /1 sleep check-in averaged 7.0 hours/);
   assert.match(answer, /2 weigh-ins: 80.0 kg on 2026-11-10 to 79.5 kg on 2026-11-11/);
