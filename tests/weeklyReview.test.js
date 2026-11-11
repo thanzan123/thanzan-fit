@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getWeeklyReview } from '../src/weeklyReview.js';
+import { formatWeeklyReviewAnswer, getWeeklyReview } from '../src/weeklyReview.js';
 
 const base = { today: '2026-11-10', meals: [], waters: [], workouts: [], weights: [], recovery: [] };
 
@@ -92,4 +92,43 @@ test('returns null averages and weight values when no eligible records exist', (
 
 test('rejects invalid reference dates', () => {
   assert.throws(() => getWeeklyReview({ ...base, today: '' }), /valid review date/);
+});
+
+
+test('averages each saved recovery rating independently and ignores missing, invalid, and out-of-window values', () => {
+  const result = getWeeklyReview({
+    ...base,
+    recovery: [
+      { date: '2026-11-04', sleepQuality: 4, energy: 3, soreness: 2, readiness: null },
+      { date: '2026-11-06', sleepQuality: 5, energy: '', soreness: 4, readiness: 5 },
+      { date: '2026-11-10', sleepQuality: 0, energy: 7, soreness: 3, readiness: 4 },
+      { date: '2026-11-03', sleepQuality: 1, energy: 1, soreness: 1, readiness: 1 },
+      { date: '2026-11-08', sleepQuality: true, energy: 'unknown', soreness: 5.5, readiness: false },
+    ],
+  });
+  assert.deepEqual(result.recoveryRatings, {
+    sleepQuality: { entries: 2, average: 4.5 },
+    energy: { entries: 1, average: 3 },
+    soreness: { entries: 3, average: 3 },
+    readiness: { entries: 2, average: 4.5 },
+  });
+  const answer = formatWeeklyReviewAnswer(result);
+  assert.match(answer, /sleep quality 4\.5\/5 across 2 ratings/);
+  assert.match(answer, /energy 3\.0\/5 across 1 rating/);
+  assert.match(answer, /soreness 3\.0\/5 across 3 ratings/);
+  assert.match(answer, /readiness 4\.5\/5 across 2 ratings/);
+});
+
+test('leaves unrated recovery scales unknown rather than treating them as zero', () => {
+  const result = getWeeklyReview({
+    ...base,
+    recovery: [{ date: '2026-11-10', sleepHours: 7, sleepQuality: null, energy: undefined, soreness: '', readiness: null }],
+  });
+  assert.deepEqual(result.recoveryRatings, {
+    sleepQuality: { entries: 0, average: null },
+    energy: { entries: 0, average: null },
+    soreness: { entries: 0, average: null },
+    readiness: { entries: 0, average: null },
+  });
+  assert.doesNotMatch(formatWeeklyReviewAnswer(result), /Average saved check-in ratings/);
 });

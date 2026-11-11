@@ -28,7 +28,15 @@ export function getWeeklyReview({ today, meals = [], waters = [], workouts = [],
   inWindow(waters).forEach(item => {
     waterDays.set(item.date, (waterDays.get(item.date) || 0) + (finite(item.ml) ? Number(item.ml) : 0));
   });
-  const sleepEntries = inWindow(recovery).filter(item => finite(item.sleepHours) && Number(item.sleepHours) >= 0 && Number(item.sleepHours) <= 24);
+  const recoveryEntries = inWindow(recovery);
+  const sleepEntries = recoveryEntries.filter(item => finite(item.sleepHours) && Number(item.sleepHours) >= 0 && Number(item.sleepHours) <= 24);
+  const recoveryRatings = Object.fromEntries(['sleepQuality', 'energy', 'soreness', 'readiness'].map(key => {
+    const values = recoveryEntries
+      .map(item => item[key])
+      .filter(value => typeof value !== 'boolean' && finite(value) && Number(value) >= 1 && Number(value) <= 5)
+      .map(Number);
+    return [key, { entries: values.length, average: mean(values) }];
+  }));
   const weighIns = inWindow(weights)
     .filter(item => finite(item.kg) && Number(item.kg) > 0)
     .sort((a, b) => a.date.localeCompare(b.date) || (Number(a.createdAt) || 0) - (Number(b.createdAt) || 0));
@@ -50,6 +58,7 @@ export function getWeeklyReview({ today, meals = [], waters = [], workouts = [],
     },
     water: { loggedDays: waterDays.size, averageMl: mean([...waterDays.values()]) },
     sleep: { checkIns: sleepEntries.length, averageHours: mean(sleepEntries.map(item => Number(item.sleepHours))) },
+    recoveryRatings,
     weight: {
       entries: weighIns.length,
       first: weighIns[0] ? { date: weighIns[0].date, kg: Number(weighIns[0].kg) } : null,
@@ -77,6 +86,11 @@ export function formatWeeklyReviewAnswer(review, formatWeight = value => `${Numb
   else parts.push('No water entries were saved this week.');
   if (review.sleep.checkIns) parts.push(`${review.sleep.checkIns} sleep ${review.sleep.checkIns === 1 ? 'check-in averaged' : 'check-ins averaged'} ${review.sleep.averageHours.toFixed(1)} hours.`);
   else parts.push('No sleep check-ins were saved this week.');
+  const ratingLabels = { sleepQuality: 'sleep quality', energy: 'energy', soreness: 'soreness', readiness: 'readiness' };
+  const ratingSummaries = Object.entries(review.recoveryRatings || {})
+    .filter(([, value]) => value && value.average !== null && value.average !== undefined && value.entries > 0)
+    .map(([key, value]) => `${ratingLabels[key] || key} ${value.average.toFixed(1)}/5 across ${value.entries} rating${value.entries === 1 ? '' : 's'}`);
+  if (ratingSummaries.length) parts.push(`Average saved check-in ratings: ${ratingSummaries.join('; ')}.`);
   if (review.weight.first && review.weight.latest) {
     const first = review.weight.first;
     const latest = review.weight.latest;
