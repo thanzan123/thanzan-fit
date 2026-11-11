@@ -27,6 +27,7 @@ import { getWaterProgress } from './waterProgress.js';
 import { getPersonalRecords } from './personalRecords.js';
 import { getNutritionTrend } from './nutritionTrend.js';
 import { getRecoveryMetricTrend } from './recoveryTrend.js';
+import { getStrengthProgress } from './strengthProgress.js';
 
 const STORAGE_KEY = 'thanzan-fit-local-v1';
 const localDate = (d = new Date()) => { const x = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return x.toISOString().slice(0, 10); };
@@ -516,6 +517,7 @@ export default function App() {
     const workouts = inRange(data.workouts).filter(item=>!item.active);
     const workoutIds = new Set(workouts.map(item=>item.id));
     const setsInRange = data.sets.filter(item=>workoutIds.has(item.sessionId));
+    const strengthProgress = getStrengthProgress(workouts, setsInRange, startDate, endDate);
     const recovery = inRange(data.recovery);
     const activityLogs = inRange(data.activityLogs||[]);
     const byDay = (items, getValue) => {
@@ -561,6 +563,11 @@ export default function App() {
     y+=3; line('TRAINING',12,true,[45,95,68]);
     line(`Completed workout sessions: ${workouts.length}`);
     if(workouts.length){line(`Total logged workout time: ${workouts.reduce((sum,item)=>sum+num(item.minutes),0)} minutes`);line(`Sets recorded: ${setsInRange.length}`);}
+    line('Repeated exercise performance (best weighted set per completed session):');
+    if(strengthProgress.length){
+      strengthProgress.forEach(item=>line(`${item.exercise}: ${displayValue(item.first.kg,'weight',data.units)} ${weightUnit} × ${item.first.reps} (${item.first.date}) → ${displayValue(item.latest.kg,'weight',data.units)} ${weightUnit} × ${item.latest.reps} (${item.latest.date}); ${item.sessions} sessions`));
+      line('This compares the first and latest recorded best sets for each movement; exercise conditions may differ.');
+    } else line('No movement has weighted sets in at least two completed sessions in this period.');
     y+=3; line('DAILY ACTIVITY',12,true,[45,95,68]);
     line(`Activity logs: ${activityLogs.length}${activityLogs.length?` across ${new Set(activityLogs.map(x=>x.date)).size} logged days`:''}`);
     line(`Steps: ${activityLogs.some(x=>x.steps!==null&&x.steps!==undefined)?activityLogs.reduce((sum,x)=>sum+num(x.steps),0).toLocaleString():'No step logs'} · walking distance: ${activityLogs.some(x=>x.distanceKm!==null&&x.distanceKm!==undefined)?displayValue(activityLogs.reduce((sum,x)=>sum+num(x.distanceKm),0),'distance',data.units)+' '+distanceUnit:'No distance logs'}`);
