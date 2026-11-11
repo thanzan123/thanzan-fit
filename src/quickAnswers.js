@@ -13,6 +13,8 @@ export function answerLocalQuestion(question, {
   weightUnit = 'kg',
   steps = null,
   stepTarget = null,
+  routine = null,
+  workoutReadiness = null,
 } = {}) {
   if (question === 'calories') {
     const entries = meals.filter(item => item.date === today);
@@ -56,6 +58,19 @@ export function answerLocalQuestion(question, {
       ? `${count.toLocaleString()} manual steps are saved today; your personal goal of ${Number(stepTarget).toLocaleString()} is reached.`
       : `${count.toLocaleString()} manual steps are saved today; ${remaining.toLocaleString()} to your personal goal of ${Number(stepTarget).toLocaleString()}.`;
   }
+  if (question === 'workout') {
+    if (!routine || typeof routine !== 'object' || !String(routine.name || '').trim()) return 'There is no workout scheduled in your saved plan for today.';
+    const exercises = Array.isArray(routine.exercises) ? routine.exercises.map(item => String(item || '').trim()).filter(Boolean) : [];
+    const focus = String(routine.focus || '').trim();
+    const plan = `${String(routine.name).trim()}${focus ? ` (${focus})` : ''}`;
+    const list = exercises.length ? `: ${exercises.join(', ')}` : '';
+    const readiness = workoutReadiness === 'rest'
+      ? ' Your check-in says you do not feel ready today; consider taking an easy recovery day instead. Your saved plan is unchanged.'
+      : workoutReadiness === 'unsure'
+        ? ' You marked workout readiness as unsure; keep it comfortable and skip anything that hurts. Your saved plan is unchanged.'
+        : '';
+    return `Today’s scheduled workout is ${plan}${list}.${readiness}`;
+  }
   if (question === 'weight') {
     if (!validNumber(startingWeight) || Number(startingWeight) <= 0 || !validNumber(currentWeight) || Number(currentWeight) <= 0) return 'Add both starting and current weight in your profile to compare them.';
     const change = Number(startingWeight) - Number(currentWeight);
@@ -70,7 +85,7 @@ export function answerLocalQuestion(question, {
 export function classifyLocalQuestion(text) {
   if (typeof text !== 'string' || !text.trim()) return null;
   const value = text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-  if (/\b(why|should|recommend|suggest|predict|forecast|diagnos|safe|recipe|meal plan|workout|exercise|trend)\b/.test(value)) return null;
+  if (/\b(why|should|recommend|suggest|predict|forecast|diagnos|safe|recipe|meal plan|exercise|trend)\b/.test(value)) return null;
 
   const matches = [
     ['calories', /\b(calories?|kcal|energy)\b/],
@@ -79,6 +94,7 @@ export function classifyLocalQuestion(text) {
     ['water', /\b(water|hydration)\b/],
     ['steps', /\bsteps?\b/],
     ['weight', /\bweight\b/],
+    ['workout', /\b(workout|training session)\b/],
     ['weekly', /\b(last|past)\s+(?:7|seven)\s+days?\b|\b(last|past)\s+week\b|\bweekly\s+(?:review|summary)\b|\bweek\s+summary\b/],
   ].filter(([, pattern]) => pattern.test(value));
   if (matches.length !== 1) return null;
@@ -92,6 +108,8 @@ export function classifyLocalQuestion(text) {
     if (!/\b(today|logged|log|goal|target|progress)\b/.test(value) || /\b(left|remaining)\b/.test(value)) return null;
   } else if (question === 'steps') {
     if (!/\b(today|logged|saved|goal|target|remaining|progress|count)\b/.test(value)) return null;
+  } else if (question === 'workout') {
+    if (!/\b(today|scheduled|schedule|plan)\b/.test(value)) return null;
   } else if (question === 'weight') {
     if (!/\bstarting\b/.test(value) || !/\bcurrent\b/.test(value) || !/\b(change|difference|compare|comparison)\b/.test(value)) return null;
   }

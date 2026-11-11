@@ -28,6 +28,14 @@ test('water answer distinguishes no entries and presents goal units accurately',
   assert.match(answerLocalQuestion('water', { today, waters: [{ date: today, ml: 750 }, { date: today, ml: 250 }], waterTarget: 2000 }), /1.00 L.*2.0 L/);
 });
 
+test('today workout answer uses the saved schedule and preserves readiness context', () => {
+  assert.match(answerLocalQuestion('workout', { routine: null }), /no workout scheduled/);
+  const routine = { name: 'Pull A', focus: 'Back · biceps', exercises: ['Lat pulldown', 'Seated row'] };
+  assert.equal(answerLocalQuestion('workout', { routine }), 'Today’s scheduled workout is Pull A (Back · biceps): Lat pulldown, Seated row.');
+  assert.match(answerLocalQuestion('workout', { routine, workoutReadiness: 'rest' }), /do not feel ready today.*easy recovery day.*plan is unchanged/);
+  assert.match(answerLocalQuestion('workout', { routine, workoutReadiness: 'unsure' }), /readiness as unsure.*skip anything that hurts.*plan is unchanged/);
+});
+
 test('weight answer compares profile values and calls out missing inputs', () => {
   assert.match(answerLocalQuestion('weight', { startingWeight: 100, currentWeight: 90, weightUnit: 'kg' }), /10.0 kg lower.*profile values/);
   assert.match(answerLocalQuestion('weight', { startingWeight: 100, currentWeight: null }), /both starting and current weight/);
@@ -51,6 +59,8 @@ test('local question routing accepts supported single-topic log questions', () =
   assert.equal(classifyLocalQuestion('How many steps did I save today?'), 'steps');
   assert.equal(classifyLocalQuestion('Compare my current and starting weight change'), 'weight');
   assert.equal(classifyLocalQuestion('Analyze my last seven days'), 'weekly');
+  assert.equal(classifyLocalQuestion('What is today’s workout?'), 'workout');
+  assert.equal(classifyLocalQuestion('Show my scheduled training session today'), 'workout');
   assert.equal(classifyLocalQuestion('Summarize the past week'), 'weekly');
 });
 
@@ -59,6 +69,7 @@ test('local question routing rejects ambiguous, unsupported, and mismatched requ
   assert.equal(classifyLocalQuestion('How many calories remain today?'), null);
   assert.equal(classifyLocalQuestion('How much water is left today?'), null);
   assert.equal(classifyLocalQuestion('What workout should I do today?'), null);
+  assert.equal(classifyLocalQuestion('Tell me about my workout'), null);
   assert.equal(classifyLocalQuestion('Why is my weight changing?'), null);
   assert.equal(classifyLocalQuestion('Analyze my protein over the last seven days'), null);
   assert.equal(classifyLocalQuestion('Tell me a recipe with protein'), null);
