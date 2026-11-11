@@ -16,6 +16,7 @@ export function answerLocalQuestion(question, {
   stepTarget = null,
   routine = null,
   workoutReadiness = null,
+  workoutDurationMinutes = null,
 } = {}) {
   if (question === 'caloriesRemaining') {
     if (!validNumber(calorieTarget) || Number(calorieTarget) <= 0) return 'A profile-based calorie target isn’t available yet, so remaining calories can’t be estimated.';
@@ -82,6 +83,14 @@ export function answerLocalQuestion(question, {
         : '';
     return `Today’s scheduled workout is ${plan}${list}.${readiness}`;
   }
+  if (question === 'tomorrowWorkout') {
+    if (!routine || typeof routine !== 'object' || !String(routine.name || '').trim()) return 'There is no workout scheduled in your saved plan for tomorrow.';
+    const exercises = Array.isArray(routine.exercises) ? routine.exercises.map(item => String(item || '').trim()).filter(Boolean) : [];
+    const plan = `${String(routine.name).trim()}${String(routine.focus || '').trim() ? ` (${String(routine.focus).trim()})` : ''}`;
+    const day = String(routine.day || '').trim();
+    const duration = validNumber(workoutDurationMinutes) && Number(workoutDurationMinutes) > 0 ? ` Your profile session length is ${Math.round(Number(workoutDurationMinutes))} minutes.` : '';
+    return `Tomorrow${day ? ` (${day})` : ''}, your saved plan is ${plan}${exercises.length ? `: ${exercises.join(', ')}` : ''}.${duration} It’s the current schedule; tomorrow’s check-in can guide any adjustment.`;
+  }
   if (question === 'weight') {
     if (!validNumber(startingWeight) || Number(startingWeight) <= 0 || !validNumber(currentWeight) || Number(currentWeight) <= 0) return 'Add both starting and current weight in your profile to compare them.';
     const change = Number(startingWeight) - Number(currentWeight);
@@ -96,6 +105,8 @@ export function answerLocalQuestion(question, {
 export function classifyLocalQuestion(text) {
   if (typeof text !== 'string' || !text.trim()) return null;
   const value = text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  const tomorrowPlan = /\btomorrow\b/.test(value) && /\b(workout|training|session)\b/.test(value) && /\b(plan|schedule|generate|what)\b/.test(value);
+  if (tomorrowPlan && !/\b(should|recommend|suggest|predict|forecast|diagnos|safe|calories?|protein|fibre|fiber|water|steps|weight|sleep|meal|food)\b/.test(value)) return 'tomorrowWorkout';
   if (/\b(why|should|recommend|suggest|predict|forecast|diagnos|safe|recipe|meal plan|exercise|trend)\b/.test(value)) return null;
 
   const matches = [

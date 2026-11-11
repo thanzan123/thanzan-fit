@@ -85,3 +85,16 @@ test('local question routing rejects ambiguous, unsupported, and mismatched requ
   assert.equal(classifyLocalQuestion('Tell me a recipe with protein'), null);
   assert.equal(classifyLocalQuestion(''), null);
 });
+
+test('tomorrow workout answer uses the saved next-day routine without inventing a new plan', () => {
+  assert.match(answerLocalQuestion('tomorrowWorkout', { routine: null }), /no workout scheduled.*tomorrow/);
+  const routine = { day: 'Thursday', name: 'Push B', focus: 'Chest · shoulders · triceps', exercises: ['Incline machine chest press', 'Lateral raise'] };
+  assert.equal(answerLocalQuestion('tomorrowWorkout', { routine, workoutDurationMinutes: 60 }), 'Tomorrow (Thursday), your saved plan is Push B (Chest · shoulders · triceps): Incline machine chest press, Lateral raise. Your profile session length is 60 minutes. It’s the current schedule; tomorrow’s check-in can guide any adjustment.');
+});
+
+test('local routing recognizes a single tomorrow workout-plan request without treating it as AI advice', () => {
+  assert.equal(classifyLocalQuestion('Generate tomorrow’s workout plan'), 'tomorrowWorkout');
+  assert.equal(classifyLocalQuestion('What is my workout tomorrow?'), 'tomorrowWorkout');
+  assert.equal(classifyLocalQuestion('What should I do for my workout tomorrow?'), null);
+  assert.equal(classifyLocalQuestion('Generate tomorrow’s workout plan and suggest dinner'), null);
+});
