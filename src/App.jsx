@@ -28,6 +28,7 @@ import { getPersonalRecords } from './personalRecords.js';
 import { getNutritionTrend } from './nutritionTrend.js';
 import { getRecoveryMetricTrend } from './recoveryTrend.js';
 import { getStrengthProgress } from './strengthProgress.js';
+import { getNextMonthRecommendations } from './monthlyRecommendations.js';
 
 const STORAGE_KEY = 'thanzan-fit-local-v1';
 const localDate = (d = new Date()) => { const x = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return x.toISOString().slice(0, 10); };
@@ -581,6 +582,11 @@ export default function App() {
     line(`Average energy / soreness (1-5): ${recovery.length?`${mean(recovery,'energy').toFixed(1)} / ${mean(recovery,'soreness').toFixed(1)}`:'No check-ins'}`);
     const avgReadiness=meanRecorded(recovery,'readiness');
     line(`Average optional readiness rating (1-5): ${avgReadiness===null?'No ratings':avgReadiness.toFixed(1)}`);
+    if(period==='month'){
+      y+=3;line('NEXT-MONTH IDEAS',12,true,[45,95,68]);
+      getNextMonthRecommendations({startDate,endDate,meals,weights,workouts,recovery}).forEach(idea=>line(idea));
+      line('These are optional prompts based on saved records, not a prescribed plan.',9,false,[92,101,95]);
+    }
     y+=4;line('Only entries saved for this period are included. Averages use days with entries; blank days are not treated as zero.',9,false,[92,101,95]);
     pdf.save(`thanzan-fit-${period==='week'?`weekly-${today}`:`monthly-${reportMonth}`}.pdf`);
     notify('Progress PDF downloaded');
