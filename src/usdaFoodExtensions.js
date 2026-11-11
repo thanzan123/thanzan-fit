@@ -10,6 +10,10 @@ export const usdaFoodExtensions = [
   {id:'usda-chapati-roti',name:'Chapati or roti, as listed',category:'USDA FoodData Central · FNDDS · FDC 2707713',basis:'100 g',kcal:299,p:7.85,c:46.13,f:9.2,fiber:9.7,sugar:2.93},
   {id:'usda-walnuts-english',name:'Walnuts, English',category:'USDA FoodData Central · SR Legacy · FDC 170187',basis:'100 g',kcal:654,p:15.2,c:13.7,f:65.2,fiber:6.7,sugar:2.61},
   {id:'usda-chia-seeds-dried',name:'Chia seeds, dried',category:'USDA FoodData Central · SR Legacy · FDC 170554',basis:'100 g',kcal:486,p:16.5,c:42.1,f:30.7,fiber:34.4,sugar:null},
+  {id:'usda-chicken-thigh-roasted',name:'Chicken thigh, meat only, cooked, roasted',category:'USDA FoodData Central · SR Legacy · FDC 172388',basis:'100 g',kcal:179,p:24.76,c:0,f:8.15,fiber:0,sugar:0},
+  {id:'usda-whole-wheat-bread',name:'Bread, whole-wheat, commercially prepared',category:'USDA FoodData Central · SR Legacy · FDC 172688',basis:'100 g',kcal:252,p:12.45,c:42.71,f:3.5,fiber:6,sugar:4.34},
+  {id:'usda-olive-oil',name:'Olive oil, salad or cooking',category:'USDA FoodData Central · SR Legacy · FDC 171413',basis:'100 g',kcal:884,p:0,c:0,f:100,fiber:0,sugar:0},
+  {id:'usda-coconut-oil',name:'Coconut oil',category:'USDA FoodData Central · SR Legacy · FDC 171412',basis:'100 g',kcal:892,p:0,c:0,f:99.06,fiber:0,sugar:0},
 ];
 
 export const usdaFoodSources = [
@@ -22,4 +26,8 @@ export const usdaFoodSources = [
   {label:'chapatti or roti · FDC 2707713',url:'https://fdc.nal.usda.gov/food-details/2707713/nutrients'},
   {label:'English walnuts · FDC 170187',url:'https://fdc.nal.usda.gov/food-details/170187/nutrients'},
   {label:'dried chia seeds · FDC 170554',url:'https://fdc.nal.usda.gov/food-details/170554/nutrients'},
+  {label:'cooked roasted chicken thigh, meat only · FDC 172388',url:'https://fdc.nal.usda.gov/food-details/172388/nutrients'},
+  {label:'commercial whole-wheat bread · FDC 172688',url:'https://fdc.nal.usda.gov/food-details/172688/nutrients'},
+  {label:'olive oil · FDC 171413',url:'https://fdc.nal.usda.gov/food-details/171413/nutrients'},
+  {label:'coconut oil · FDC 171412',url:'https://fdc.nal.usda.gov/food-details/171412/nutrients'},
 ];
