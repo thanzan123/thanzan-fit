@@ -116,3 +116,5 @@
   .photo-compare-grid img { height: min(60vh, 460px); }
   .photo-comparison { padding: 12px; }
 }
+
+.remaining-target{display:block;margin-top:5px;color:var(--accent);font-size:10px;font-weight:650;line-height:1.35}
