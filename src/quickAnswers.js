@@ -79,6 +79,7 @@ export function classifyLocalQuestion(text) {
     ['water', /\b(water|hydration)\b/],
     ['steps', /\bsteps?\b/],
     ['weight', /\bweight\b/],
+    ['weekly', /\b(last|past)\s+(?:7|seven)\s+days?\b|\b(last|past)\s+week\b|\bweekly\s+(?:review|summary)\b|\bweek\s+summary\b/],
   ].filter(([, pattern]) => pattern.test(value));
   if (matches.length !== 1) return null;
 

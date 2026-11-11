@@ -50,6 +50,8 @@ test('local question routing accepts supported single-topic log questions', () =
   assert.equal(classifyLocalQuestion('Water logged today'), 'water');
   assert.equal(classifyLocalQuestion('How many steps did I save today?'), 'steps');
   assert.equal(classifyLocalQuestion('Compare my current and starting weight change'), 'weight');
+  assert.equal(classifyLocalQuestion('Analyze my last seven days'), 'weekly');
+  assert.equal(classifyLocalQuestion('Summarize the past week'), 'weekly');
 });
 
 test('local question routing rejects ambiguous, unsupported, and mismatched requests', () => {
@@ -58,6 +60,7 @@ test('local question routing rejects ambiguous, unsupported, and mismatched requ
   assert.equal(classifyLocalQuestion('How much water is left today?'), null);
   assert.equal(classifyLocalQuestion('What workout should I do today?'), null);
   assert.equal(classifyLocalQuestion('Why is my weight changing?'), null);
+  assert.equal(classifyLocalQuestion('Analyze my protein over the last seven days'), null);
   assert.equal(classifyLocalQuestion('Tell me a recipe with protein'), null);
   assert.equal(classifyLocalQuestion(''), null);
 });
