@@ -80,3 +80,39 @@
 
 .water-remaining{margin:10px 0 0;font-size:12px;color:var(--accent);font-weight:650}
 .personal-record-list{display:grid}.personal-record-list .record-row{align-items:center}.personal-record-list .record-row>span{display:grid;gap:4px}.personal-record-list .record-row small{color:var(--muted);font-size:10px}
+
+/* Encrypted, browser-local progress photo vault */
+.private-photo-vault { overflow: hidden; }
+.private-photo-vault .card-head { align-items: flex-start; }
+.photo-privacy-note { margin: 0 0 18px; }
+.photo-vault-unlock, .photo-add-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: end; }
+.photo-vault-unlock .field:first-child { grid-column: 1 / -1; }
+.photo-vault-unlock .button, .photo-vault-unlock .method-note { grid-column: 1 / -1; justify-self: start; }
+.photo-file-field { grid-column: 1 / -1; }
+.photo-file-field input { max-width: 100%; padding: 10px; }
+.photo-save-button { justify-self: start; }
+.photo-vault-status, .photo-library-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 8px 0 16px; color: var(--muted); font-size: .88rem; }
+.photo-vault-error { color: #ef9a91; font-size: .9rem; }
+.photo-vault-error-state { display: grid; justify-items: start; gap: 8px; }
+.photo-comparison { margin-top: 24px; padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--surface) 84%, transparent); }
+.photo-comparison .card-head { margin-bottom: 12px; }
+.photo-comparison h3 { margin: 0; }
+.photo-compare-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.photo-compare-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.photo-compare-grid figure { min-width: 0; margin: 0; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--background); }
+.photo-compare-grid img { display: block; width: 100%; height: min(58vh, 520px); object-fit: contain; border-radius: 8px; background: #111; }
+.photo-compare-grid figcaption { display: grid; gap: 4px; margin-top: 9px; font-size: .84rem; overflow-wrap: anywhere; }
+.photo-compare-grid figcaption span { color: var(--muted); }
+.photo-library { margin: 22px 0; }
+.photo-library-heading { margin-bottom: 8px; }
+.photo-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+.photo-row img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; background: #111; }
+.photo-row > div { display: grid; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.photo-row small { color: var(--muted); }
+@media (max-width: 640px) {
+  .photo-add-form, .photo-vault-unlock, .photo-compare-controls { grid-template-columns: minmax(0, 1fr); }
+  .photo-vault-unlock .field:first-child, .photo-vault-unlock .button, .photo-vault-unlock .method-note, .photo-file-field { grid-column: auto; }
+  .photo-compare-grid { grid-template-columns: minmax(0, 1fr); }
+  .photo-compare-grid img { height: min(60vh, 460px); }
+  .photo-comparison { padding: 12px; }
+}
