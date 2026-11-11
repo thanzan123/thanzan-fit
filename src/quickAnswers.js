@@ -8,6 +8,7 @@ export function answerLocalQuestion(question, {
   proteinTarget = null,
   fiberTarget = null,
   waterTarget = null,
+  calorieTarget = null,
   startingWeight = null,
   currentWeight = null,
   weightUnit = 'kg',
@@ -16,6 +17,16 @@ export function answerLocalQuestion(question, {
   routine = null,
   workoutReadiness = null,
 } = {}) {
+  if (question === 'caloriesRemaining') {
+    if (!validNumber(calorieTarget) || Number(calorieTarget) <= 0) return 'A profile-based calorie target isn’t available yet, so remaining calories can’t be estimated.';
+    const entries = meals.filter(item => item.date === today);
+    if (!entries.length) return `There are no food entries saved today, so intake and remaining calories are unknown. Your profile-based estimate is ${Math.round(Number(calorieTarget)).toLocaleString()} kcal/day.`;
+    const logged = entries.reduce((sum, item) => sum + (validNumber(item.kcal) && Number(item.kcal) >= 0 ? Number(item.kcal) : 0), 0);
+    const difference = Number(calorieTarget) - logged;
+    return difference >= 0
+      ? `${Math.round(logged).toLocaleString()} kcal is logged today, leaving about ${Math.round(difference).toLocaleString()} kcal against your estimated ${Math.round(Number(calorieTarget)).toLocaleString()} kcal target. It’s a comparison, not a prescription.`
+      : `${Math.round(logged).toLocaleString()} kcal is logged today, about ${Math.round(Math.abs(difference)).toLocaleString()} kcal above your estimated ${Math.round(Number(calorieTarget)).toLocaleString()} kcal target. It’s a comparison, not a prescription.`;
+  }
   if (question === 'calories') {
     const entries = meals.filter(item => item.date === today);
     if (!entries.length) return 'There are no food entries saved for today, so I can’t total today’s intake yet.';
@@ -100,8 +111,20 @@ export function classifyLocalQuestion(text) {
   if (matches.length !== 1) return null;
 
   const [question] = matches[0];
+  if (question === 'caloriesRemaining') {
+    if (!validNumber(calorieTarget) || Number(calorieTarget) <= 0) return 'A profile-based calorie target isn’t available yet, so remaining calories can’t be estimated.';
+    const entries = meals.filter(item => item.date === today);
+    if (!entries.length) return `There are no food entries saved today, so intake and remaining calories are unknown. Your profile-based estimate is ${Math.round(Number(calorieTarget)).toLocaleString()} kcal/day.`;
+    const logged = entries.reduce((sum, item) => sum + (validNumber(item.kcal) && Number(item.kcal) >= 0 ? Number(item.kcal) : 0), 0);
+    const difference = Number(calorieTarget) - logged;
+    return difference >= 0
+      ? `${Math.round(logged).toLocaleString()} kcal is logged today, leaving about ${Math.round(difference).toLocaleString()} kcal against your estimated ${Math.round(Number(calorieTarget)).toLocaleString()} kcal target. It’s a comparison, not a prescription.`
+      : `${Math.round(logged).toLocaleString()} kcal is logged today, about ${Math.round(Math.abs(difference)).toLocaleString()} kcal above your estimated ${Math.round(Number(calorieTarget)).toLocaleString()} kcal target. It’s a comparison, not a prescription.`;
+  }
   if (question === 'calories') {
-    if (!/\b(today|logged|log|intake|eaten)\b/.test(value) || /\b(left|remain(?:ing)?|target|goal|budget)\b/.test(value)) return null;
+    const asksRemaining = /\b(left|remain(?:ing)?|target|goal|budget)\b/.test(value);
+    if (asksRemaining) return /\b(today|logged|log|intake|eaten|consumed)\b/.test(value) ? 'caloriesRemaining' : null;
+    if (!/\b(today|logged|log|intake|eaten|consumed)\b/.test(value)) return null;
   } else if (question === 'protein' || question === 'fiber') {
     if (!/\b(today|left|remaining|logged|log|target|goal|estimate|intake)\b/.test(value)) return null;
   } else if (question === 'water') {

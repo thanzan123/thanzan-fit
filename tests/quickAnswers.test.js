@@ -9,6 +9,13 @@ test('calorie answer uses only today entries and distinguishes no logged food', 
   assert.match(answerLocalQuestion('calories', { today, meals: [{ date: today, kcal: 440 }, { date: '2026-11-10', kcal: 300 }] }), /440 kcal across 1 entry/);
 });
 
+test('calorie remainder compares todays log with an available estimated target', () => {
+  assert.match(answerLocalQuestion('caloriesRemaining', { today, meals: [], calorieTarget: 1800 }), /no food entries saved.*unknown.*1,800 kcal\/day/);
+  assert.match(answerLocalQuestion('caloriesRemaining', { today, calorieTarget: null, meals: [{ date: today, kcal: 440 }] }), /target isn’t available/);
+  assert.match(answerLocalQuestion('caloriesRemaining', { today, calorieTarget: 1800, meals: [{ date: today, kcal: 440 }, { date: '2026-11-10', kcal: 300 }] }), /440 kcal.*leaving about 1,360 kcal.*1,800 kcal target.*not a prescription/);
+  assert.match(answerLocalQuestion('caloriesRemaining', { today, calorieTarget: 1800, meals: [{ date: today, kcal: 1900 }] }), /1,900 kcal.*100 kcal above.*1,800 kcal target/);
+});
+
 test('protein answer requires an available target and avoids treating absent logs as intake', () => {
   assert.match(answerLocalQuestion('protein', { today, proteinTarget: null }), /target weight/);
   assert.match(answerLocalQuestion('protein', { today, proteinTarget: 100, meals: [] }), /logged intake is still unknown/);
@@ -54,6 +61,8 @@ test('steps answer keeps absent manual logs unknown and reports personal-goal pr
 test('local question routing accepts supported single-topic log questions', () => {
   assert.equal(classifyLocalQuestion('How much protein is left today?'), 'protein');
   assert.equal(classifyLocalQuestion('How many calories have I logged today?'), 'calories');
+  assert.equal(classifyLocalQuestion('How many calories remain today?'), 'caloriesRemaining');
+  assert.equal(classifyLocalQuestion('How many calories are left in my budget today?'), 'caloriesRemaining');
   assert.equal(classifyLocalQuestion('Fibre remaining today'), 'fiber');
   assert.equal(classifyLocalQuestion('Water logged today'), 'water');
   assert.equal(classifyLocalQuestion('How many steps did I save today?'), 'steps');
@@ -66,7 +75,8 @@ test('local question routing accepts supported single-topic log questions', () =
 
 test('local question routing rejects ambiguous, unsupported, and mismatched requests', () => {
   assert.equal(classifyLocalQuestion('How much protein and fibre is left?'), null);
-  assert.equal(classifyLocalQuestion('How many calories remain today?'), null);
+  assert.equal(classifyLocalQuestion('How many calories should I eat?'), null);
+  assert.equal(classifyLocalQuestion('How many calories remain in my weekly target?'), null);
   assert.equal(classifyLocalQuestion('How much water is left today?'), null);
   assert.equal(classifyLocalQuestion('What workout should I do today?'), null);
   assert.equal(classifyLocalQuestion('Tell me about my workout'), null);
