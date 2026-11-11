@@ -16,3 +16,17 @@ test('no allergy note or no matching name produces no warning, not a safety clai
   assert.deepEqual(findAllergyNameMatches({ name: 'Cashew nuts, raw' }, ''), []);
   assert.deepEqual(findAllergyNameMatches({ name: 'Rice flour' }, 'cashew'), []);
 });
+
+test('recognizes common Indian and label names for ingredients', () => {
+  assert.deepEqual(findAllergyNameMatches({ name: 'Omelette', ingredients: [{ name: 'Egg white' }] }, 'egg protein'), ['egg protein']);
+  assert.deepEqual(findAllergyNameMatches({ name: 'Puttu', ingredients: [{ name: 'Rice flour' }, { name: 'Til seeds' }] }, 'sesame'), ['sesame']);
+  assert.deepEqual(findAllergyNameMatches({ name: 'Chapati', ingredients: [{ name: 'Maida' }] }, 'gluten'), ['gluten']);
+  assert.deepEqual(findAllergyNameMatches({ name: 'Soya chunks curry' }, 'soybean allergy'), ['soybean']);
+  assert.deepEqual(findAllergyNameMatches({ name: 'Avial', ingredients: [{ name: 'Mustard seeds' }] }, 'rai'), ['rai']);
+});
+
+test('recognizes dairy proteins, tree-nut wording and shellfish varieties', () => {
+  assert.deepEqual(findAllergyNameMatches({ name: 'Whey protein powder' }, 'milk protein'), ['milk protein']);
+  assert.deepEqual(findAllergyNameMatches({ name: 'Almond flour' }, 'tree nut allergy'), ['tree nut']);
+  assert.deepEqual(findAllergyNameMatches({ name: 'Prawn roast' }, 'shellfish'), ['shellfish']);
+});
