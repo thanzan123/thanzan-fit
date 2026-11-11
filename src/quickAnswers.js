@@ -64,3 +64,35 @@ export function answerLocalQuestion(question, {
   }
   return 'Choose one of the questions to see what your saved records show.';
 }
+
+
+/** Routes only clearly supported, single-topic questions to local record summaries. */
+export function classifyLocalQuestion(text) {
+  if (typeof text !== 'string' || !text.trim()) return null;
+  const value = text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  if (/\b(why|should|recommend|suggest|predict|forecast|diagnos|safe|recipe|meal plan|workout|exercise|trend)\b/.test(value)) return null;
+
+  const matches = [
+    ['calories', /\b(calories?|kcal|energy)\b/],
+    ['protein', /\bprotein\b/],
+    ['fiber', /\b(fiber|fibre)\b/],
+    ['water', /\b(water|hydration)\b/],
+    ['steps', /\bsteps?\b/],
+    ['weight', /\bweight\b/],
+  ].filter(([, pattern]) => pattern.test(value));
+  if (matches.length !== 1) return null;
+
+  const [question] = matches[0];
+  if (question === 'calories') {
+    if (!/\b(today|logged|log|intake|eaten)\b/.test(value) || /\b(left|remain(?:ing)?|target|goal|budget)\b/.test(value)) return null;
+  } else if (question === 'protein' || question === 'fiber') {
+    if (!/\b(today|left|remaining|logged|log|target|goal|estimate|intake)\b/.test(value)) return null;
+  } else if (question === 'water') {
+    if (!/\b(today|logged|log|goal|target|progress)\b/.test(value) || /\b(left|remaining)\b/.test(value)) return null;
+  } else if (question === 'steps') {
+    if (!/\b(today|logged|saved|goal|target|remaining|progress|count)\b/.test(value)) return null;
+  } else if (question === 'weight') {
+    if (!/\bstarting\b/.test(value) || !/\bcurrent\b/.test(value) || !/\b(change|difference|compare|comparison)\b/.test(value)) return null;
+  }
+  return question;
+}

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { answerLocalQuestion } from '../src/quickAnswers.js';
+import { answerLocalQuestion, classifyLocalQuestion } from '../src/quickAnswers.js';
 
 const today = '2026-11-11';
 
@@ -40,4 +40,24 @@ test('steps answer keeps absent manual logs unknown and reports personal-goal pr
   assert.match(answerLocalQuestion('steps', { steps: 6200, stepTarget: 8000 }), /6,200 manual steps.*1,800.*8,000/);
   assert.match(answerLocalQuestion('steps', { steps: 9000, stepTarget: 8000 }), /9,000 manual steps.*goal of 8,000 is reached/);
   assert.match(answerLocalQuestion('steps', { steps: 6200 }), /no personal step goal is set/);
+});
+
+
+test('local question routing accepts supported single-topic log questions', () => {
+  assert.equal(classifyLocalQuestion('How much protein is left today?'), 'protein');
+  assert.equal(classifyLocalQuestion('How many calories have I logged today?'), 'calories');
+  assert.equal(classifyLocalQuestion('Fibre remaining today'), 'fiber');
+  assert.equal(classifyLocalQuestion('Water logged today'), 'water');
+  assert.equal(classifyLocalQuestion('How many steps did I save today?'), 'steps');
+  assert.equal(classifyLocalQuestion('Compare my current and starting weight change'), 'weight');
+});
+
+test('local question routing rejects ambiguous, unsupported, and mismatched requests', () => {
+  assert.equal(classifyLocalQuestion('How much protein and fibre is left?'), null);
+  assert.equal(classifyLocalQuestion('How many calories remain today?'), null);
+  assert.equal(classifyLocalQuestion('How much water is left today?'), null);
+  assert.equal(classifyLocalQuestion('What workout should I do today?'), null);
+  assert.equal(classifyLocalQuestion('Why is my weight changing?'), null);
+  assert.equal(classifyLocalQuestion('Tell me a recipe with protein'), null);
+  assert.equal(classifyLocalQuestion(''), null);
 });
