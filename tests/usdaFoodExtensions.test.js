@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { usdaFoodExtensions, usdaFoodSources } from '../src/usdaFoodExtensions.js';
 
 test('adds the requested USDA reference ingredients with unique IDs and per-100 g values', () => {
-  assert.equal(usdaFoodExtensions.length, 6);
+  assert.equal(usdaFoodExtensions.length, 9);
   assert.equal(new Set(usdaFoodExtensions.map(food => food.id)).size, usdaFoodExtensions.length);
   const byName = Object.fromEntries(usdaFoodExtensions.map(food => [food.name, food]));
   assert.deepEqual(
-    ['Greek yogurt, plain, nonfat','Whey-based protein powder, generic','Beef, top round, lean, raw','Shrimp, cooked','Broccoli, raw','Almonds, raw'].sort(),
+    ['Greek yogurt, plain, nonfat','Whey-based protein powder, generic','Beef, top round, lean, raw','Shrimp, cooked','Broccoli, raw','Almonds, raw','Chapati or roti, as listed','Walnuts, English','Chia seeds, dried'].sort(),
     Object.keys(byName).sort(),
   );
   for (const food of usdaFoodExtensions) {
@@ -21,6 +21,12 @@ test('adds the requested USDA reference ingredients with unique IDs and per-100 
   assert.equal(byName['Shrimp, cooked'].sugar, null, 'unknown sugar stays unknown');
   assert.equal(byName['Broccoli, raw'].fiber, 2.6);
   assert.equal(byName['Almonds, raw'].fiber, 12.5);
+  assert.equal(byName['Chapati or roti, as listed'].kcal, 299);
+  assert.equal(byName['Chapati or roti, as listed'].fiber, 9.7);
+  assert.equal(byName['Walnuts, English'].p, 15.2);
+  assert.equal(byName['Walnuts, English'].sugar, 2.61);
+  assert.equal(byName['Chia seeds, dried'].fiber, 34.4);
+  assert.equal(byName['Chia seeds, dried'].sugar, null, 'unreported sugar stays unknown');
 });
 
 test('provides a matching USDA FoodData Central source link for every new food', () => {
