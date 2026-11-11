@@ -21,7 +21,7 @@ A mobile-first, standalone fitness and food journal that runs in a browser and c
 - Responsive dark/light UI, installable manifest and offline app-shell caching.
 - A 32-movement exercise guide with optional, explicitly non-equivalent supported swaps for selected movements; routine swaps affect only the chosen saved routine. Thirty guides have in-app video examples; Dead bug and Light walking link to the original YouTube pages instead of embedding or copying them. Reuse rights for those two external videos were not independently verified.
 
-This is a useful local-first starter, not the full production platform from the original brief. Cloud sign-in and manual sync remain inactive until you configure Supabase; it does not include secure private photo storage, cross-device persistence, a complete embedded video library, or personalized AI integration. Local reminder settings are optional; browser notifications work only while the app is open.
+This is a useful local-first starter, not the full production platform from the original brief. Cloud sign-in and manual sync remain inactive until you configure Supabase; there is no cross-device persistence or personalized AI integration. The photo vault encrypts photos in this browser only; it does not sync, back them up, or provide cloud photo storage. Two exercise demos open on YouTube rather than playing inside the app. Local reminder settings are optional; browser notifications work only while the app is open.
 
 ## Run locally
 
