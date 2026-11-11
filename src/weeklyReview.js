@@ -1,8 +1,10 @@
+import { getStrengthProgress } from './strengthProgress.js';
+
 const validDate = (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
 const finite = (value) => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
 const mean = (values) => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
 
-export function getWeeklyReview({ today, meals = [], waters = [], workouts = [], weights = [], recovery = [] }) {
+export function getWeeklyReview({ today, meals = [], waters = [], workouts = [], weights = [], recovery = [], sets = [] }) {
   if (!validDate(today) || !Number.isFinite(Date.parse(`${today}T00:00:00Z`))) throw new Error('A valid review date is required.');
   const end = new Date(`${today}T12:00:00Z`);
   end.setUTCDate(end.getUTCDate() - 6);
@@ -45,6 +47,7 @@ export function getWeeklyReview({ today, meals = [], waters = [], workouts = [],
     startDate,
     endDate: today,
     completedWorkouts: inWindow(workouts).filter(item => item.active !== true).length,
+    strengthProgress: getStrengthProgress(workouts, sets, startDate, today),
     nutrition: {
       loggedDays: mealDays.size,
       averageCalories: nutrientAverages.kcal.average,
@@ -85,6 +88,10 @@ export function formatWeeklyReviewAnswer(review, formatWeight = value => `${Numb
   if (review.water.loggedDays) parts.push(`Water was logged on ${review.water.loggedDays} ${review.water.loggedDays === 1 ? 'day' : 'days'}, averaging ${Math.round(review.water.averageMl).toLocaleString()} ml on logged days.`);
   else parts.push('No water entries were saved this week.');
   if (review.sleep.checkIns) parts.push(`${review.sleep.checkIns} sleep ${review.sleep.checkIns === 1 ? 'check-in averaged' : 'check-ins averaged'} ${review.sleep.averageHours.toFixed(1)} hours.`);
+  if (review.strengthProgress?.length) {
+    const comparisons = review.strengthProgress.map(item => `${item.exercise}: ${item.first.kg} kg × ${item.first.reps} to ${item.latest.kg} kg × ${item.latest.reps} (${item.sessions} sessions)`);
+    parts.push(`Weighted strength comparisons: ${comparisons.join('; ')}. These compare first and latest saved best sets, not a controlled strength test.`);
+  }
   else parts.push('No sleep check-ins were saved this week.');
   const ratingLabels = { sleepQuality: 'sleep quality', energy: 'energy', soreness: 'soreness', readiness: 'readiness' };
   const ratingSummaries = Object.entries(review.recoveryRatings || {})

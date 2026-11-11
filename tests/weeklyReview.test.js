@@ -132,3 +132,40 @@ test('leaves unrated recovery scales unknown rather than treating them as zero',
   });
   assert.doesNotMatch(formatWeeklyReviewAnswer(result), /Average saved check-in ratings/);
 });
+
+
+test('weekly review compares first and latest best weighted sets from completed sessions', () => {
+  const review = getWeeklyReview({
+    ...base,
+    workouts: [
+      { id: 'one', date: '2026-11-04', active: false, startedAt: 10 },
+      { id: 'two', date: '2026-11-08', active: false, startedAt: 20 },
+      { id: 'active', date: '2026-11-09', active: true, startedAt: 30 },
+      { id: 'outside', date: '2026-11-02', active: false, startedAt: 1 },
+    ],
+    sets: [
+      { sessionId: 'one', exercise: 'Row', kg: 20, reps: 10 },
+      { sessionId: 'one', exercise: 'Row', kg: 17.5, reps: 12 },
+      { sessionId: 'two', exercise: 'Row', kg: 22.5, reps: 8 },
+      { sessionId: 'active', exercise: 'Row', kg: 30, reps: 5 },
+      { sessionId: 'outside', exercise: 'Row', kg: 35, reps: 5 },
+      { sessionId: 'one', exercise: 'Single session', kg: 10, reps: 8 },
+    ],
+  });
+  assert.deepEqual(review.strengthProgress, [{
+    exercise: 'Row', sessions: 2,
+    first: { date: '2026-11-04', startedAt: 10, kg: 20, reps: 10 },
+    latest: { date: '2026-11-08', startedAt: 20, kg: 22.5, reps: 8 },
+  }]);
+  assert.match(formatWeeklyReviewAnswer(review), /Weighted strength comparisons: Row: 20 kg × 10 to 22.5 kg × 8 \(2 sessions\)/);
+  assert.match(formatWeeklyReviewAnswer(review), /not a controlled strength test/);
+});
+
+test('weekly review leaves strength comparisons empty without two valid completed sessions', () => {
+  const review = getWeeklyReview({
+    ...base,
+    workouts: [{ id: 'one', date: '2026-11-10', active: false }],
+    sets: [{ sessionId: 'one', exercise: 'Bench press', kg: 20, reps: 8 }],
+  });
+  assert.deepEqual(review.strengthProgress, []);
+});
