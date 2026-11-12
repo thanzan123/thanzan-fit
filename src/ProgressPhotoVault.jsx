@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ImagePlus, LockKeyhole, UnlockKeyhole, X } from 'lucide-react';
-import { addVaultPhoto, clearPhotoVault, deleteVaultPhoto, inspectPhotoVault, photoVaultSupported, readVaultPhotos, unlockPhotoVault, createPhotoVault } from './privatePhotoVault.js';
+import { addVaultPhoto, clearPhotoVault, deleteVaultPhoto, exportPhotoVaultBackup, inspectPhotoVault, photoVaultSupported, readVaultPhotos, restorePhotoVaultBackup, unlockPhotoVault, createPhotoVault } from './privatePhotoVault.js';
 
 const localDate = () => {
   const now = new Date();
@@ -39,6 +39,8 @@ export default function ProgressPhotoVault({ onNotify }) {
   const [date, setDate] = useState(localDate());
   const [note, setNote] = useState('');
   const [file, setFile] = useState(null);
+  const [backupFile, setBackupFile] = useState(null);
+  const [backupPassphrase, setBackupPassphrase] = useState('');
   const [beforeId, setBeforeId] = useState('');
   const [afterId, setAfterId] = useState('');
   const [busy, setBusy] = useState(false);
@@ -81,6 +83,38 @@ export default function ProgressPhotoVault({ onNotify }) {
       setVault(current => ({ ...current, loading: false, exists: true }));
       onNotify(vault.exists ? 'Private photo vault unlocked' : 'Private photo vault created');
     } catch (err) { setError(err.message || 'Could not open the photo vault.'); }
+    finally { setBusy(false); }
+  };
+
+  const exportBackup = async () => {
+    setBusy(true); setError('');
+    try {
+      const json = await exportPhotoVaultBackup();
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url; link.download = `thanzan-fit-photo-vault-${localDate()}.json`;
+      document.body.appendChild(link); link.click(); link.remove(); window.setTimeout(()=>URL.revokeObjectURL(url), 1000);
+      onNotify('Encrypted photo-vault backup downloaded');
+    } catch (err) { setError(err.message || 'Could not export the photo vault.'); }
+    finally { setBusy(false); }
+  };
+
+  const restoreBackup = async event => {
+    event.preventDefault();
+    if (!backupFile || !backupPassphrase) return;
+    setBusy(true); setError('');
+    try {
+      const json = await backupFile.text();
+      const result = await restorePhotoVaultBackup(json, backupPassphrase, key);
+      const restoredKey = key || await unlockPhotoVault(backupPassphrase);
+      setKey(restoredKey);
+      await refreshPhotos(restoredKey);
+      setBackupFile(null); setBackupPassphrase('');
+      const input = document.getElementById('photo-vault-backup-file'); if (input) input.value = '';
+      const status = await inspectPhotoVault(); setVault(current => ({ ...current, ...status }));
+      onNotify(`${result.imported} ${result.imported===1?'photo':'photos'} restored to this browser`);
+    } catch (err) { setError(err.message || 'Could not restore this photo-vault backup.'); }
     finally { setBusy(false); }
   };
 
@@ -135,16 +169,31 @@ export default function ProgressPhotoVault({ onNotify }) {
 
   return <section className="card private-photo-vault">
     <div className="card-head"><div><span className="eyebrow">PRIVATE PROGRESS</span><h2>Photo vault</h2><p className="muted">Compare dated photos over time, encrypted on this browser.</p></div><LockKeyhole size={19}/></div>
-    <p className="method-note photo-privacy-note">Your photos are encrypted with a passphrase before they’re saved in this browser. They aren’t uploaded, synced, included in app backups, or recoverable if you forget the passphrase. This is local encrypted storage—not cloud photo storage.</p>
-    {vault.loading ? <p className="empty-state">Checking this browser for a photo vault…</p> : !photoVaultSupported() ? <p className="empty-state">This browser does not support secure local photo storage.</p> : vault.error && !key ? <div className="photo-vault-error-state"><p className="photo-vault-error" role="alert">Could not check local photo storage: {vault.error}</p><button type="button" className="button ghost" onClick={retryInspect}>Try again</button></div> : !key ? <form className="photo-vault-unlock" onSubmit={submitPassphrase}>
+    <p className="method-note photo-privacy-note">Photos are encrypted with your passphrase and stay in this browser. They aren’t included in the app’s regular data backup or synced; export a separate encrypted photo-vault backup to move them between browsers. If you forget the passphrase, the photos can’t be recovered. This is local storage—not cloud photo storage.</p>
+    {vault.loading ? <p className="empty-state">Checking this browser for a photo vault…</p> : !photoVaultSupported() ? <p className="empty-state">This browser does not support secure local photo storage.</p> : vault.error && !key ? <div className="photo-vault-error-state"><p className="photo-vault-error" role="alert">Could not check local photo storage: {vault.error}</p><button type="button" className="button ghost" onClick={retryInspect}>Try again</button></div> : !key ? <div className="photo-vault-locked"><form className="photo-vault-unlock" onSubmit={submitPassphrase}>
       {vault.error && <p className="method-note">{vault.error}</p>}
       <label className="field"><span>{vault.exists ? 'Vault passphrase' : 'Create a vault passphrase'}</span><input type="password" autoComplete="new-password" minLength="8" value={passphrase} onChange={event=>setPassphrase(event.target.value)} required placeholder={vault.exists ? 'Enter your passphrase' : 'At least 8 characters'} /></label>
       {!vault.exists && <label className="field"><span>Confirm passphrase</span><input type="password" autoComplete="new-password" minLength="8" value={confirmPassphrase} onChange={event=>setConfirmPassphrase(event.target.value)} required placeholder="Re-enter passphrase" /></label>}
       {error && <p className="photo-vault-error" role="alert">{error}</p>}
       <button className="button primary" type="submit" disabled={busy || (!vault.exists && passphrase !== confirmPassphrase)}>{busy ? 'Opening…' : vault.exists ? <><UnlockKeyhole size={15}/>Unlock vault</> : <><LockKeyhole size={15}/>Create private vault</>}</button>
       {!vault.exists&&<p className="method-note">Choose a passphrase you can keep safely; the app cannot reset or recover it.</p>}
-    </form> : <>
+    </form>{!vault.exists&&<form className="photo-restore-form photo-restore-locked" onSubmit={restoreBackup}>
+      <div><h3>Restore an encrypted vault backup</h3><p className="method-note">Use the backup file and its passphrase to restore photos here instead of creating a new vault.</p></div>
+      <label className="field photo-file-field"><span>Photo-vault backup file</span><input id="photo-vault-backup-file" type="file" accept="application/json,.json" required onChange={event=>setBackupFile(event.target.files?.[0]||null)}/></label>
+      <label className="field"><span>Backup passphrase</span><input type="password" autoComplete="current-password" value={backupPassphrase} onChange={event=>setBackupPassphrase(event.target.value)} required placeholder="Passphrase used for that backup"/></label>
+      <button type="submit" className="button soft" disabled={!backupFile||!backupPassphrase||busy}>{busy?'Restoring…':'Restore photo vault'}</button>
+    </form>}</div> : <>
       <div className="photo-vault-status"><span>{photos.length} {photos.length===1?'photo':'photos'} · unlocked for this screen</span><button type="button" className="text-button" onClick={lockVault}>Lock vault</button></div>
+      <div className="photo-backup-tools">
+        <div><h3>Encrypted backup</h3><p className="method-note">The export stays encrypted and needs this vault’s passphrase to restore.</p></div>
+        <button type="button" className="button soft" onClick={exportBackup} disabled={busy}>Download photo backup</button>
+        <form className="photo-restore-form" onSubmit={restoreBackup}>
+          <label className="field photo-file-field"><span>Restore photo backup</span><input id="photo-vault-backup-file" type="file" accept="application/json,.json" required onChange={event=>setBackupFile(event.target.files?.[0]||null)}/></label>
+          <label className="field"><span>Backup passphrase</span><input type="password" autoComplete="current-password" value={backupPassphrase} onChange={event=>setBackupPassphrase(event.target.value)} required placeholder="Passphrase used for that backup"/></label>
+          <p className="method-note">Adds the backup’s photos without replacing photos already in this vault.</p>
+          <button type="submit" className="button ghost" disabled={!backupFile||!backupPassphrase||busy}>{busy?'Restoring…':'Restore photos'}</button>
+        </form>
+      </div>
       <form className="photo-add-form" onSubmit={savePhoto}>
         <label className="field photo-file-field"><span>Choose a photo</span><input id="progress-photo-file" type="file" accept="image/*" capture="environment" required onChange={event=>setFile(event.target.files?.[0]||null)}/></label>
         <label className="field"><span>Date taken</span><input type="date" value={date} onChange={event=>setDate(event.target.value)} required/></label>

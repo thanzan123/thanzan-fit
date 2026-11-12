@@ -2,6 +2,8 @@ const DB_NAME = 'thanzan-fit-private-photos-v1';
 const DB_VERSION = 1;
 const CONFIG_KEY = 'config';
 const CHECK_TEXT = 'thanzan-fit-photo-vault-check-v1';
+const BACKUP_FORMAT = 'thanzan-fit-encrypted-photo-vault';
+const BACKUP_VERSION = 1;
 const ITERATIONS = 250000;
 
 const bytesToBase64 = bytes => {
@@ -165,5 +167,122 @@ export async function clearPhotoVault() {
     tx.objectStore('config').clear();
     tx.objectStore('photos').clear();
     await done;
+  });
+}
+
+
+function encodeBuffer(buffer) {
+  return bytesToBase64(buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer));
+}
+
+function decodeBuffer(value, label) {
+  if (typeof value !== 'string' || !value || value.length > 160_000_000) throw new Error(`The photo backup has an invalid ${label}.`);
+  try { return base64ToBytes(value).buffer; }
+  catch { throw new Error(`The photo backup has an invalid ${label}.`); }
+}
+
+function exportRow(row) {
+  return { id: row.id, iv: row.iv, ciphertext: encodeBuffer(row.ciphertext) };
+}
+
+export function serializePhotoVaultBackup(config, photos) {
+  return JSON.stringify({
+    format: BACKUP_FORMAT,
+    version: BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    config: { ...config, ciphertext: encodeBuffer(config.ciphertext) },
+    photos: photos.map(exportRow),
+  });
+}
+
+export async function exportPhotoVaultBackup() {
+  return withDb(async db => {
+    const tx = db.transaction(['config', 'photos'], 'readonly');
+    const done = transactionDone(tx);
+    const [config, photos] = await Promise.all([
+      requestResult(tx.objectStore('config').get(CONFIG_KEY)),
+      requestResult(tx.objectStore('photos').getAll()),
+    ]);
+    await done;
+    if (!config) throw new Error('Create or unlock a photo vault before exporting it.');
+    return serializePhotoVaultBackup(config, photos);
+  });
+}
+
+export function parsePhotoVaultBackup(json) {
+  let backup;
+  try { backup = typeof json === 'string' ? JSON.parse(json) : json; }
+  catch { throw new Error('This file is not a readable photo-vault backup.'); }
+  if (!backup || backup.format !== BACKUP_FORMAT || backup.version !== BACKUP_VERSION || !backup.config || !Array.isArray(backup.photos)) {
+    throw new Error('This is not a supported THANZAN FIT photo-vault backup.');
+  }
+  const config = backup.config;
+  if (typeof config.salt !== 'string' || typeof config.iv !== 'string' || !Number.isInteger(config.iterations) || config.iterations !== ITERATIONS || config.id !== CONFIG_KEY) {
+    throw new Error('The photo backup has invalid vault settings.');
+  }
+  const restoredConfig = { id: CONFIG_KEY, salt: config.salt, iv: config.iv, iterations: ITERATIONS, ciphertext: decodeBuffer(config.ciphertext, 'vault check') };
+  const ids = new Set();
+  if (!backup.photos.every(row => {
+    if (!row || typeof row.id !== 'string' || !row.id || typeof row.iv !== 'string' || typeof row.ciphertext !== 'string' || ids.has(row.id)) return false;
+    ids.add(row.id);
+    return true;
+  })) throw new Error('The photo backup contains an invalid photo record.');
+  const photos = backup.photos.map(row => ({ id: row.id, iv: row.iv, ciphertext: decodeBuffer(row.ciphertext, 'photo data') }));
+  return { config: restoredConfig, photos };
+}
+
+async function unlockBackup(passphrase, config) {
+  const key = await derivePhotoVaultKey(passphrase, base64ToBytes(config.salt));
+  let check;
+  try { check = await decryptPhotoPayload(key, config); }
+  catch { throw new Error('That passphrase did not unlock this backup.'); }
+  if (check?.check !== CHECK_TEXT) throw new Error('That passphrase did not unlock this backup.');
+  return key;
+}
+
+function validBackupPhotoPayload(payload) {
+  if (!payload || !isValidPhotoDate(payload.date) || typeof payload.note !== 'string' || payload.note.length > 160 || typeof payload.type !== 'string' || !payload.type.startsWith('image/') || typeof payload.bytes !== 'string') return false;
+  try { return base64ToBytes(payload.bytes).byteLength > 0; } catch { return false; }
+}
+
+export async function restorePhotoVaultBackup(json, passphrase, targetKey = null) {
+  if (typeof passphrase !== 'string' || !passphrase) throw new Error('Enter the passphrase used for this backup.');
+  const backup = parsePhotoVaultBackup(json);
+  const sourceKey = await unlockBackup(passphrase, backup.config);
+  const payloads = [];
+  for (const row of backup.photos) {
+    let payload;
+    try { payload = await decryptPhotoPayload(sourceKey, row); }
+    catch { throw new Error('The backup contains a photo that could not be decrypted. No photos were restored.'); }
+    if (!validBackupPhotoPayload(payload)) throw new Error('The backup contains invalid photo data. No photos were restored.');
+    payloads.push(payload);
+  }
+
+  return withDb(async db => {
+    const read = db.transaction(['config', 'photos'], 'readonly');
+    const readDone = transactionDone(read);
+    const [existingConfig, existingPhotos] = await Promise.all([
+      requestResult(read.objectStore('config').get(CONFIG_KEY)),
+      requestResult(read.objectStore('photos').getAll()),
+    ]);
+    await readDone;
+    if (existingConfig && !targetKey) throw new Error('Unlock the existing photo vault before adding this backup.');
+    if (!existingConfig && targetKey) throw new Error('No existing photo vault is available for this import.');
+
+    const usedIds = new Set(existingPhotos.map(row => row.id));
+    const rows = existingConfig ? await Promise.all(payloads.map(async (payload, index) => {
+      const encrypted = await encryptPhotoPayload(targetKey, payload);
+      let id = backup.photos[index].id;
+      while (usedIds.has(id)) id = crypto.randomUUID();
+      usedIds.add(id);
+      return { id, ...encrypted };
+    })) : backup.photos;
+    const tx = existingConfig ? db.transaction('photos', 'readwrite') : db.transaction(['config', 'photos'], 'readwrite');
+    const done = transactionDone(tx);
+    if (!existingConfig) tx.objectStore('config').add(backup.config);
+    const photoStore = tx.objectStore('photos');
+    rows.forEach(row => photoStore.add(row));
+    await done;
+    return { imported: payloads.length, merged: !!existingConfig };
   });
 }
