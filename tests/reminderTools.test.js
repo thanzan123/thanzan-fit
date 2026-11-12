@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createCustomReminder, removeCustomReminder, validateCustomReminder } from '../src/reminderTools.js';
+import { createCustomReminder, removeCustomReminder, sendReminderNotifications, validateCustomReminder } from '../src/reminderTools.js';
 
 test('validates custom reminder labels, times, and optional weekdays', () => {
   assert.equal(validateCustomReminder({ label: '  ', time: '08:00' }).field, 'label');
@@ -28,4 +28,15 @@ test('avoids ID collisions and only removes explicitly custom reminders', () => 
   assert.equal(added.reminder.id, 'custom-b');
   assert.deepEqual(removeCustomReminder([...entries, added.reminder], 'water'), [...entries, added.reminder]);
   assert.deepEqual(removeCustomReminder([...entries, added.reminder], 'custom-b'), entries);
+});
+
+
+test('only marks reminders whose browser notifications were created successfully', () => {
+  const reminders = [{ id: 'ok', label: 'Water' }, { id: 'blocked', label: 'Stretch' }];
+  const notified = sendReminderNotifications(reminders, reminder => {
+    if (reminder.id === 'blocked') throw new Error('Notification unavailable');
+  });
+  assert.deepEqual(notified, ['ok']);
+  assert.deepEqual(sendReminderNotifications(reminders, () => { throw new Error('Unavailable'); }), []);
+  assert.deepEqual(sendReminderNotifications(null, () => {}), []);
 });

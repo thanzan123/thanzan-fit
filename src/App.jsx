@@ -42,7 +42,7 @@ import { getNextMonthRecommendations } from './monthlyRecommendations.js';
 import ProgressPhotoVault from './ProgressPhotoVault.jsx';
 import PwaInstallCard from './PwaInstallCard.jsx';
 import { clearPhotoVault } from './privatePhotoVault.js';
-import { createCustomReminder, removeCustomReminder } from './reminderTools.js';
+import { createCustomReminder, removeCustomReminder, sendReminderNotifications } from './reminderTools.js';
 import { toggleExerciseCompletion } from './exerciseCompletion.js';
 
 const STORAGE_KEY = 'thanzan-fit-local-v1';
@@ -318,8 +318,9 @@ export default function App() {
       const now=new Date(), date=localDate(now), minute=now.getHours()*60+now.getMinutes();
       const due=(data.reminders||[]).filter(r=>r.enabled&&r.lastFiredDate!==date&&(!r.day||r.day===new Intl.DateTimeFormat('en',{weekday:'long'}).format(now))&&(()=>{const [h,m]=String(r.time||'').split(':').map(Number);const scheduled=h*60+m;return Number.isFinite(scheduled)&&minute>=scheduled&&minute<=scheduled+4;})());
       if(!due.length) return;
-      due.forEach(r=>{try{new Notification(`THANZAN FIT · ${r.label}`,{body:'Your reminder is ready when you are.',tag:`thanzan-fit-${r.id}-${date}`});}catch{}});
-      setData(d=>({...d,reminders:(d.reminders||[]).map(r=>due.some(item=>item.id===r.id)?{...r,lastFiredDate:date}:r)}));
+      const notified=sendReminderNotifications(due,r=>new Notification(`THANZAN FIT · ${r.label}`,{body:'Your reminder is ready when you are.',tag:`thanzan-fit-${r.id}-${date}`}));
+      if(!notified.length) return;
+      setData(d=>({...d,reminders:(d.reminders||[]).map(r=>notified.includes(r.id)?{...r,lastFiredDate:date}:r)}));
     };
     checkReminders(); const id=window.setInterval(checkReminders,15000); return ()=>clearInterval(id);
   },[data.reminders]);

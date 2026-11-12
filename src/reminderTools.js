@@ -28,3 +28,17 @@ export function createCustomReminder(reminders, values, idFactory) {
 export function removeCustomReminder(reminders, reminderId) {
   return (Array.isArray(reminders) ? reminders : []).filter(item => !(item?.id === reminderId && item.custom === true));
 }
+
+export function sendReminderNotifications(reminders, createNotification) {
+  if (!Array.isArray(reminders) || typeof createNotification !== 'function') return [];
+  const notified = [];
+  for (const reminder of reminders) {
+    try {
+      createNotification(reminder);
+      notified.push(reminder.id);
+    } catch {
+      // Keep failed reminders eligible for the next in-window check.
+    }
+  }
+  return notified;
+}
