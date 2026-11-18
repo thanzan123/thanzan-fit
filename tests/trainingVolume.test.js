@@ -55,3 +55,26 @@ test('returns an empty review and rejects an invalid review date', () => {
   });
   assert.throws(() => getWeeklyTrainingVolume({ today: 'not-a-date' }), /valid review date/);
 });
+
+test('reviews a selected historical seven-day window and excludes sessions outside it', () => {
+  const result = getWeeklyTrainingVolume({
+    today: '2026-10-10',
+    workouts: [
+      { id: 'before', date: '2026-10-03' },
+      { id: 'start', date: '2026-10-04' },
+      { id: 'end', date: '2026-10-10' },
+      { id: 'after', date: '2026-10-11' },
+    ],
+    sets: [
+      { sessionId: 'before', exercise: 'Machine Chest Press', reps: 8, kg: 20 },
+      { sessionId: 'start', exercise: 'Machine Chest Press', reps: 8, kg: 20 },
+      { sessionId: 'end', exercise: 'Triceps Rope Pushdown', reps: 8, kg: 5 },
+      { sessionId: 'after', exercise: 'Machine Chest Press', reps: 8, kg: 20 },
+    ],
+    exerciseGuides: guides,
+  });
+  assert.equal(result.startDate, '2026-10-04');
+  assert.equal(result.endDate, '2026-10-10');
+  assert.equal(result.totalSets, 2);
+  assert.equal(result.sessionCount, 2);
+});

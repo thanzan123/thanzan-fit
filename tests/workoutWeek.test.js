@@ -41,3 +41,19 @@ test('rejects malformed and impossible calendar dates', () => {
     assert.throws(() => getWorkoutWeek({ today }), RangeError);
   }
 });
+
+test('supports reviewing any selected historical seven-day window', () => {
+  const result = getWorkoutWeek({
+    today: '2026-10-10',
+    weeklyTarget: 5,
+    workouts: [
+      { date: '2026-10-03', active: false },
+      { date: '2026-10-04', active: false },
+      { date: '2026-10-10', active: false },
+      { date: '2026-10-11', active: false },
+    ],
+  });
+  assert.equal(result.startDate, '2026-10-04');
+  assert.equal(result.endDate, '2026-10-10');
+  assert.equal(result.completed, 2);
+});
