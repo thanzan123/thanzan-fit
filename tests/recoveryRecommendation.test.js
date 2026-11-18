@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getRecoveryRecommendation } from '../src/recoveryRecommendation.js';
+import { getRecoveryRecommendation, getRecoverySignals } from '../src/recoveryRecommendation.js';
 
 test('does not infer recovery signals from missing or invalid check-in fields', () => {
   assert.equal(getRecoveryRecommendation(null), null);
@@ -33,4 +33,16 @@ test('unsure readiness remains gentle and uses only available check-in data', ()
   assert.equal(note.kind, 'caution');
   assert.match(note.body, /Start gently and reassess/);
   assert.doesNotMatch(note.body, /sleep|energy|soreness/i);
+});
+
+
+test('keeps blank and invalid recovery values unknown in shared training signals', () => {
+  assert.deepEqual(getRecoverySignals({ sleepHours: null, sleepQuality: '', energy: undefined, soreness: true, readiness: 8 }), []);
+  assert.deepEqual(getRecoverySignals({ sleepHours: 5.5, sleepQuality: 2, energy: 2, soreness: 4, readiness: 1 }), [
+    'less than 6 hours of sleep', 'low sleep-quality rating', 'low energy rating', 'high soreness rating', 'low readiness rating',
+  ]);
+});
+
+test('does not create a recovery warning from invalid values outside saved field ranges', () => {
+  assert.equal(getRecoveryRecommendation({ sleepHours: 30, sleepQuality: 0, energy: 7, soreness: -1, readiness: 20 }), null);
 });

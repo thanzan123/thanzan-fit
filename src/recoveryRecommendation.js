@@ -1,4 +1,24 @@
-const present = (value) => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
+const numericValue = (value, min, max) => {
+  if (typeof value === 'boolean' || value === null || value === undefined || value === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= min && number <= max ? number : null;
+};
+
+export function getRecoverySignals(checkin) {
+  if (!checkin || typeof checkin !== 'object') return [];
+  const signals = [];
+  const sleepHours = numericValue(checkin.sleepHours, 0, 24);
+  const sleepQuality = numericValue(checkin.sleepQuality, 1, 5);
+  const energy = numericValue(checkin.energy, 1, 5);
+  const soreness = numericValue(checkin.soreness, 1, 5);
+  const readiness = numericValue(checkin.readiness, 1, 5);
+  if (sleepHours !== null && sleepHours < 6) signals.push('less than 6 hours of sleep');
+  if (sleepQuality !== null && sleepQuality <= 2) signals.push('low sleep-quality rating');
+  if (energy !== null && energy <= 2) signals.push('low energy rating');
+  if (soreness !== null && soreness >= 4) signals.push('high soreness rating');
+  if (readiness !== null && readiness <= 2) signals.push('low readiness rating');
+  return signals;
+}
 
 export function getRecoveryRecommendation(checkin) {
   if (!checkin || typeof checkin !== 'object') return null;
@@ -12,12 +32,7 @@ export function getRecoveryRecommendation(checkin) {
     };
   }
 
-  const signals = [];
-  if (present(checkin.sleepHours) && Number(checkin.sleepHours) < 6) signals.push('under 6 hours of sleep');
-  if (present(checkin.sleepQuality) && Number(checkin.sleepQuality) <= 2) signals.push('low sleep-quality rating');
-  if (present(checkin.energy) && Number(checkin.energy) <= 2) signals.push('low energy rating');
-  if (present(checkin.soreness) && Number(checkin.soreness) >= 4) signals.push('high soreness rating');
-  if (present(checkin.readiness) && Number(checkin.readiness) <= 2) signals.push('low readiness rating');
+  const signals = getRecoverySignals(checkin).map(signal => signal === 'less than 6 hours of sleep' ? 'under 6 hours of sleep' : signal);
 
   if (checkin.workoutReadiness === 'unsure') {
     return {

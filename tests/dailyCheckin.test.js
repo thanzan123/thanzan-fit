@@ -99,3 +99,14 @@ test('deleting a recovery check-in leaves independent weight and profile data un
   assert.equal(result.profile, profile);
   assert.deepEqual(recovery[0], { id: 'r1', date: '2026-11-18', sleepHours: 7 });
 });
+
+
+test('blank sleep duration stays unknown while other check-in answers are saved', () => {
+  const result = saveDailyCheckin({
+    recovery: [], weights: [], profile: {}, date: '2026-11-18', idFactory: makeId,
+    sleepHours: '', sleepQuality: '', energy: 3, soreness: '', readiness: '', workoutReadiness: 'ready',
+  });
+  assert.equal(result.recovery[0].sleepHours, null);
+  assert.equal(result.recovery[0].energy, 3);
+  assert.equal(result.recovery[0].workoutReadiness, 'ready');
+});

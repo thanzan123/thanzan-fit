@@ -11,7 +11,7 @@ export function saveDailyCheckin({ recovery = [], weights = [], profile = {}, da
     ...existing,
     id: existing?.id || idFactory(),
     date,
-    sleepHours: Number(sleepHours),
+    sleepHours: sleepHours === '' || sleepHours === null || sleepHours === undefined ? null : Number(sleepHours),
     sleepQuality: sleepQuality === '' || sleepQuality === null || sleepQuality === undefined ? null : Number(sleepQuality),
     energy: energy === '' || energy === null || energy === undefined ? null : Number(energy),
     soreness: soreness === '' || soreness === null || soreness === undefined ? null : Number(soreness),
