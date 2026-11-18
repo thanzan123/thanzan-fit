@@ -40,3 +40,7 @@ export function saveDailyCheckin({ recovery = [], weights = [], profile = {}, da
     : [nextWeight, ...weights];
   return { recovery: nextRecoveryList, weights: nextWeights, profile: updateCurrentWeight ? { ...profile, currentWeightKg: String(kg) } : profile };
 }
+
+export function removeDailyCheckin({ recovery = [], weights = [], profile = {} } = {}, id) {
+  return { recovery: recovery.filter(entry => entry.id !== id), weights, profile };
+}

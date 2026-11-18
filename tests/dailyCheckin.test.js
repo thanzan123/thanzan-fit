@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { isValidCheckinDate, saveDailyCheckin } from '../src/dailyCheckin.js';
+import { isValidCheckinDate, removeDailyCheckin, saveDailyCheckin } from '../src/dailyCheckin.js';
 
 const makeId = (() => { let n = 0; return () => `new-${++n}`; })();
 
@@ -86,4 +86,16 @@ test('blank optional recovery ratings remain unknown rather than becoming zero',
   assert.equal(result.recovery[0].energy, null);
   assert.equal(result.recovery[0].soreness, null);
   assert.equal(Object.hasOwn(result.recovery[0], 'readiness'), false);
+});
+
+
+test('deleting a recovery check-in leaves independent weight and profile data untouched', () => {
+  const recovery = [{ id: 'r1', date: '2026-11-18', sleepHours: 7 }, { id: 'r2', date: '2026-11-17', sleepHours: 8 }];
+  const weights = [{ id: 'w1', date: '2026-11-18', kg: 80 }];
+  const profile = { currentWeightKg: '80' };
+  const result = removeDailyCheckin({ recovery, weights, profile }, 'r1');
+  assert.deepEqual(result.recovery, [recovery[1]]);
+  assert.equal(result.weights, weights);
+  assert.equal(result.profile, profile);
+  assert.deepEqual(recovery[0], { id: 'r1', date: '2026-11-18', sleepHours: 7 });
 });
