@@ -39,6 +39,7 @@ import { mergeBackupState } from './mergeBackup.js';
 import { deleteWorkoutSetRecords, updateWorkoutSetRecords, validateWorkoutSetEdit } from './workoutSetEdits.js';
 import { getNutritionTrend } from './nutritionTrend.js';
 import { getRecoveryMetricTrend } from './recoveryTrend.js';
+import { getRecoveryReportSummary } from './recoveryReport.js';
 import { getRecoveryRecommendation } from './recoveryRecommendation.js';
 import { getStrengthProgress } from './strengthProgress.js';
 import { getNextMonthRecommendations } from './monthlyRecommendations.js';
@@ -624,6 +625,7 @@ export default function App() {
     const setsInRange = data.sets.filter(item=>workoutIds.has(item.sessionId));
     const strengthProgress = getStrengthProgress(workouts, setsInRange, startDate, endDate);
     const recovery = inRange(data.recovery);
+    const recoverySummary = getRecoveryReportSummary(recovery);
     const activityLogs = inRange(data.activityLogs||[]);
     const byDay = (items, getValue) => {
       const totals = new Map();
@@ -631,8 +633,6 @@ export default function App() {
       const values = [...totals.values()];
       return values.length ? values.reduce((sum,value)=>sum+value,0)/values.length : null;
     };
-    const mean = (items,key) => items.length ? items.reduce((sum,item)=>sum+num(item[key]),0)/items.length : null;
-    const meanRecorded = (items,key) => { const recorded=items.filter(item=>Number.isFinite(Number(item[key]))&&item[key]!==null&&item[key]!==undefined); return recorded.length?recorded.reduce((sum,item)=>sum+Number(item[key]),0)/recorded.length:null; };
     const pdf = new jsPDF({unit:'mm',format:'a4'});
     const margin=16, width=178;
     let y=20;
@@ -680,12 +680,17 @@ export default function App() {
     if(activityLogs.some(x=>x.estimatedWalkCalories!==null&&x.estimatedWalkCalories!==undefined)) line('Walking calorie estimate is rough and based on logged distance and profile weight; it is not measured.');
     y+=3; line('RECOVERY',12,true,[45,95,68]);
     line(`Recovery check-ins: ${recovery.length}`);
-    line(`Average sleep on check-in days: ${mean(recovery,'sleepHours')===null?'No check-ins':`${mean(recovery,'sleepHours').toFixed(1)} hours`}`);
-    const avgSleepQuality=meanRecorded(recovery,'sleepQuality');
-    line(`Average reported sleep quality (1-5): ${avgSleepQuality===null?'No ratings':avgSleepQuality.toFixed(1)}`);
-    line(`Average energy / soreness (1-5): ${recovery.length?`${mean(recovery,'energy').toFixed(1)} / ${mean(recovery,'soreness').toFixed(1)}`:'No check-ins'}`);
-    const avgReadiness=meanRecorded(recovery,'readiness');
-    line(`Average optional readiness rating (1-5): ${avgReadiness===null?'No ratings':avgReadiness.toFixed(1)}`);
+    const recoveryAverageLine = (label, metric, unit='') => {
+      const result = recoverySummary[metric];
+      line(`${label}: ${result.average===null?'No recorded values':`${result.average.toFixed(1)}${unit} across ${result.entries} check-in${result.entries===1?'':'s'}`}`);
+    };
+    recoveryAverageLine('Average sleep duration', 'sleepHours', ' hours');
+    recoveryAverageLine('Average reported sleep quality (1-5)', 'sleepQuality');
+    recoveryAverageLine('Average self-rated energy (1-5)', 'energy');
+    recoveryAverageLine('Average self-rated soreness (1-5)', 'soreness');
+    recoveryAverageLine('Average optional readiness rating (1-5)', 'readiness');
+    const workoutReadiness = recoverySummary.workoutReadiness;
+    line(`Self-reported workout readiness: ${workoutReadiness.entries?`${workoutReadiness.ready} ready · ${workoutReadiness.unsure} unsure · ${workoutReadiness.rest} rest`: 'No responses'}`);
     if(period==='month'){
       y+=3;line('NEXT-MONTH IDEAS',12,true,[45,95,68]);
       getNextMonthRecommendations({startDate,endDate,meals,weights,workouts,recovery}).forEach(idea=>line(idea));
