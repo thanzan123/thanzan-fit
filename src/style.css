@@ -147,3 +147,8 @@
 .trend-controls{display:flex;align-items:end;gap:10px}.trend-controls .field{flex:1;min-width:120px}@media(max-width:720px){.card-head:has(.trend-controls){align-items:stretch;flex-direction:column}.trend-controls{width:100%}.trend-controls .field{min-width:0}}
 .training-note-list{display:grid;gap:2px;margin:0 0 12px}.training-note-list .list-row{align-items:flex-start}.training-note-list .list-row strong{flex:0 0 170px}.training-note-list .list-row span{font-size:12px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.training-notes .method-note{margin-top:9px}
 @media(max-width:720px){.training-note-list .list-row strong{flex-basis:118px}}
+
+.local-data-controls{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+.local-data-controls h3{margin:0 0 .35rem;font-size:.95rem}
+.local-data-controls .method-note{margin:0;max-width:42rem}
+@media(max-width:560px){.local-data-controls{flex-direction:column}}
