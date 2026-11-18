@@ -43,3 +43,41 @@ test('limits the trend to the latest saved dates and handles empty data', () => 
   assert.equal(getActivityMetricTrend(entries).entries.length, 14);
   assert.equal(getActivityMetricTrend([]).average, null);
 });
+
+
+test('supports a calendar-day window ending on the selected date', () => {
+  const trend = getActivityMetricTrend([
+    { date: '2026-10-01', steps: 2000 },
+    { date: '2026-11-01', steps: 4000 },
+    { date: '2026-11-18', steps: 6000 },
+    { date: '2026-11-19', steps: 9000 },
+  ], 'steps', 14, '2026-11-18');
+  assert.deepEqual(trend.entries.map(point => [point.date, point.value, point.dateOffset]), [
+    ['2026-11-18', 6000, 13],
+  ]);
+  assert.equal(trend.rangeDays, 14);
+  assert.equal(trend.rangeStartDate, '2026-11-05');
+  assert.equal(trend.rangeEndDate, '2026-11-18');
+});
+
+test('calendar window keeps logged dates and places gaps at their actual date offsets', () => {
+  const trend = getActivityMetricTrend([
+    { date: '2026-11-01', steps: 1000 },
+    { date: '2026-11-04', steps: 4000 },
+    { date: '2026-11-04', steps: 5000, createdAt: 2 },
+    { date: '2026-11-05', steps: null },
+  ], 'steps', 7, '2026-11-07');
+  assert.deepEqual(trend.entries.map(point => [point.date, point.value, point.dateOffset]), [
+    ['2026-11-01', 1000, 0], ['2026-11-04', 5000, 3],
+  ]);
+  assert.equal(trend.average, 3000);
+});
+
+test('calendar window rejects impossible dates and excludes future records', () => {
+  const trend = getActivityMetricTrend([
+    { date: '2026-02-30', steps: 2000 },
+    { date: '2026-11-10', steps: 3000 },
+    { date: '2026-11-21', steps: 9000 },
+  ], 'steps', 14, '2026-11-20');
+  assert.deepEqual(trend.entries.map(point => point.date), ['2026-11-10']);
+});
