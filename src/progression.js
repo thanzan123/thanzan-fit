@@ -12,12 +12,18 @@ const minimumSetsFrom = (value) => {
 
 const formatLoad = (kg, units = 'metric') => `${Number((units === 'imperial' ? kg / 0.45359237 : kg).toFixed(1))} ${units === 'imperial' ? 'lb' : 'kg'}`;
 
-export function getProgressionCue({ guide, session, recoverySignals = [], exerciseRestrictions = '', previousInjuries = '', units = 'metric' }) {
+const validSets = (value) => Array.isArray(value)
+  ? value.filter(set => Number(set.reps) > 0 && Number(set.kg) >= 0 && Number.isFinite(Number(set.reps)) && Number.isFinite(Number(set.kg)))
+  : [];
+
+export function getProgressionCue({ guide, sessions = [], session = null, recoverySignals = [], exerciseRestrictions = '', previousInjuries = '', units = 'metric' }) {
   if (!guide) return { kind: 'neutral', body: 'Choose a guided exercise to see a log-based progression cue.' };
   const repRange = rangeFrom(guide.reps);
   const minSets = minimumSetsFrom(guide.sets);
   if (!repRange || !minSets) return { kind: 'neutral', body: 'This guide does not use a simple rep range, so a rep-based load cue does not apply.' };
-  const sets = Array.isArray(session?.sets) ? session.sets.filter(set => Number(set.reps) > 0 && Number(set.kg) >= 0) : [];
+  const history = Array.isArray(sessions) && sessions.length ? sessions : session ? [session] : [];
+  const latest = history[0] || null;
+  const sets = validSets(latest?.sets);
   if (!sets.length) return { kind: 'neutral', body: 'No completed-session sets are logged for this exercise yet; a progression cue will appear when there is useful history.' };
   if (String(exerciseRestrictions || '').trim() || String(previousInjuries || '').trim()) {
     return { kind: 'caution', body: 'Your profile includes a saved restriction or injury note. Follow that guidance; this simple log-based cue cannot personalize progression for it.' };
@@ -34,8 +40,22 @@ export function getProgressionCue({ guide, session, recoverySignals = [], exerci
   if (loads.length !== 1 || loads[0] <= 0) {
     return { kind: 'neutral', body: `Latest completed session: ${setText}. The mixed or unloaded sets do not support a clear load-progression cue.` };
   }
-  if (reps.every(count => count >= repRange.max)) {
-    return { kind: 'suggestion', body: `Latest completed session: ${setText}. You reached the top of the guide across your sets; next time, if every rep felt controlled and pain-free, you could consider the smallest available load increase. Repeating this load is fine too.` };
+  if (!reps.every(count => count >= repRange.max)) {
+    return { kind: 'steady', body: `Latest completed session: ${setText}. No increase is indicated by this session; use a comfortable load and build controlled reps within the guide’s range.` };
   }
-  return { kind: 'steady', body: `Latest completed session: ${setText}. No increase is indicated by this session; use a comfortable load and build controlled reps within the guide’s range.` };
+
+  const previousSets = validSets(history[1]?.sets);
+  const previousLoads = [...new Set(previousSets.map(set => Number(set.kg)))];
+  const repeatedTopRange = previousSets.length >= minSets
+    && previousLoads.length === 1
+    && previousLoads[0] === loads[0]
+    && previousLoads[0] > 0
+    && previousSets.every(set => Number(set.reps) >= repRange.max);
+  if (repeatedTopRange) {
+    return { kind: 'suggestion', body: `Your last two completed sessions reached the top of the guide (${repRange.max} reps) in every logged set at ${formatLoad(loads[0], units)}. If every rep felt controlled and pain-free, you could consider the smallest available load increase next time; repeating this load is fine too.` };
+  }
+  if (history.length < 2) {
+    return { kind: 'steady', body: `Latest completed session: ${setText}. You reached the top of the range once; repeat this load and range in another session before considering an increase.` };
+  }
+  return { kind: 'steady', body: `Latest completed session: ${setText}. The previous session does not show the same top-range sets at this load; repeat controlled reps before considering an increase.` };
 }
